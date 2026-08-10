@@ -6,6 +6,7 @@ import styles from "./page.module.css";
 import { DEGREE_PLANS, SUBJECTS_BY_PLAN, DegreePlanId, QuestionType, QuestionCategory } from "@/lib/constants/planes_materias";
 import { hasProfanity } from "@/lib/utils/profanity";
 import { generateTrackingCode } from "@/lib/utils/tracking-code";
+import { supabase } from "@/lib/supabase/client";
 
 export default function NuevaPreguntaPage() {
   // Estado del árbol de decisión
@@ -16,11 +17,12 @@ export default function NuevaPreguntaPage() {
   const [selectedSubject, setSelectedSubject] = useState<string>("");
   const [content, setContent] = useState<string>("");
 
-  // Estados de interfaz
+  // Estados de interfaz y carga
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
   const [submittedCode, setSubmittedCode] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -41,9 +43,38 @@ export default function NuevaPreguntaPage() {
       return;
     }
 
-    // 3. Generación de código de rastreo (Simulación de envío previo a conectar Supabase)
-    const trackingCode = generateTrackingCode();
-    setSubmittedCode(trackingCode);
+    setLoading(true);
+
+    try {
+      const trackingCode = generateTrackingCode();
+
+      // 3. Inserción real en la base de datos de Supabase
+      const { error: dbError } = await supabase.from("questions").insert([
+        {
+          tracking_code: trackingCode,
+          type: questionType,
+          degree_plan: questionType === "carrera" ? degreePlan : null,
+          category: questionType === "carrera" ? category : null,
+          subject_name: questionType === "carrera" && category === "materias" ? selectedSubject : null,
+          semester: semester,
+          content: content.trim(),
+          status: "pending",
+          upvotes: 0,
+        },
+      ]);
+
+      if (dbError) {
+        throw new Error(dbError.message);
+      }
+
+      // Éxito: Guardamos el código para mostrar la confirmación
+      setSubmittedCode(trackingCode);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Ocurrió un error al enviar tu pregunta. Intenta de nuevo.";
+      setError(`Error al guardar: ${message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Si la pregunta ya se envió con éxito, mostramos el código de rastreo
@@ -97,8 +128,6 @@ export default function NuevaPreguntaPage() {
           Tu duda será publicada de forma 100% anónima.
         </p>
 
-        {error && <div className={styles.errorMessage}>{error}</div>}
-
         <form onSubmit={handleSubmit}>
           {/* PASO 1: Tipo de Pregunta */}
           <div className={styles.formGroup}>
@@ -129,7 +158,7 @@ export default function NuevaPreguntaPage() {
                   value={degreePlan}
                   onChange={(e) => {
                     setDegreePlan(e.target.value as DegreePlanId);
-                    setSelectedSubject(""); // Reiniciar materia elegida al cambiar plan
+                    setSelectedSubject("");
                   }}
                 >
                   {DEGREE_PLANS.map((plan) => (
@@ -158,7 +187,6 @@ export default function NuevaPreguntaPage() {
                 </div>
               </div>
 
-              {/* Si eligió Materias, desplegamos las materias filtradas del plan */}
               {category === "materias" && (
                 <div className={styles.formGroup}>
                   <label className={styles.label}>Selecciona la Materia</label>
@@ -204,16 +232,20 @@ export default function NuevaPreguntaPage() {
               value={content}
               onChange={(e) => {
                 setContent(e.target.value);
-                if (error) setError(null); // Limpia el error en cuanto el alumno vuelve a escribir
+                if (error) setError(null);
               }}
             />
           </div>
 
-          {/* MENSAJE DE ERROR: Posicionado exactamente aquí para visibilidad inmediata */}
+          {/* Error de validación o base de datos */}
           {error && <div className={styles.errorMessage}>{error}</div>}
 
-          <button type="submit" className={styles.submitButton}>
-            Enviar Duda Anónima
+          <button
+            type="submit"
+            className={styles.submitButton}
+            disabled={loading}
+          >
+            {loading ? "Enviando duda..." : "Enviar Duda Anónima"}
           </button>
         </form>
       </div>
