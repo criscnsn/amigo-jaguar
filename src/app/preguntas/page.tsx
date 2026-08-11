@@ -23,6 +23,12 @@ interface AnsweredQuestion {
       semester: number;
     } | null;
   }[];
+  // Nueva propiedad para recibir las preguntas hijas
+  grouped_questions: {
+    id: string;
+    tracking_code: string;
+    content: string;
+  }[];
 }
 
 export default function PreguntasRespondidasPage() {
@@ -61,9 +67,15 @@ export default function PreguntasRespondidasPage() {
             degree_plan,
             semester
           )
+        ),
+        grouped_questions:questions!parent_question_id (
+          id,
+          tracking_code,
+          content
         )
       `)
       .eq("status", "answered")
+      .is("parent_question_id", null) // REGLA CLAVE: Solo trae las preguntas principales, ignora las hijas
       .order("created_at", { ascending: false });
 
     if (!error && data) {
@@ -72,18 +84,15 @@ export default function PreguntasRespondidasPage() {
     setLoading(false);
   };
 
-  // Manejador del voto (Permite poner y quitar el "Me sirvió" de forma idempotente)
   const handleUpvote = async (questionId: string, currentUpvotes: number) => {
     const hasVoted = upvotedIds.includes(questionId);
     
-    // Si ya votó, restamos 1; si no ha votado, sumamos 1
     const newCount = hasVoted ? Math.max(0, currentUpvotes - 1) : currentUpvotes + 1;
 
     const updatedUpvotedIds = hasVoted
       ? upvotedIds.filter((id) => id !== questionId)
       : [...upvotedIds, questionId];
 
-    // Actualización inmediata en interfaz local
     setQuestions((prev) =>
       prev.map((q) => (q.id === questionId ? { ...q, upvotes: newCount } : q))
     );
@@ -91,7 +100,6 @@ export default function PreguntasRespondidasPage() {
     setUpvotedIds(updatedUpvotedIds);
     localStorage.setItem("upvoted_questions", JSON.stringify(updatedUpvotedIds));
 
-    // Guardado idempotente en Supabase
     await supabase
       .from("questions")
       .update({ upvotes: newCount })
@@ -103,10 +111,13 @@ export default function PreguntasRespondidasPage() {
       selectedTab === "todas" ? true : q.type === selectedTab;
 
     const query = searchQuery.toLowerCase();
+    
+    // Búsqueda mejorada: Ahora también busca dentro del texto de las preguntas agrupadas
     const matchesSearch =
       q.content.toLowerCase().includes(query) ||
       (q.subject_name && q.subject_name.toLowerCase().includes(query)) ||
-      (q.degree_plan && q.degree_plan.toLowerCase().includes(query));
+      (q.degree_plan && q.degree_plan.toLowerCase().includes(query)) ||
+      (q.grouped_questions && q.grouped_questions.some(gq => gq.content.toLowerCase().includes(query) || gq.tracking_code.toLowerCase().includes(query)));
 
     return matchesTab && matchesSearch;
   });
@@ -124,7 +135,7 @@ export default function PreguntasRespondidasPage() {
         <input
           type="text"
           className={styles.searchInput}
-          placeholder="Buscar por palabra clave (ej. cálculo, inscripción, maestro)..."
+          placeholder="Buscar por palabra clave o código (ej. JAG-XXXX, cálculo, maestro)..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
@@ -163,7 +174,7 @@ export default function PreguntasRespondidasPage() {
       ) : (
         <div className={styles.feed}>
           {filteredQuestions.map((q) => {
-            const primaryAnswer = q.answers[0];
+            const primaryAnswer = q.answers && q.answers.length > 0 ? q.answers[0] : null;
             const profile = primaryAnswer?.profiles;
             const hasVoted = upvotedIds.includes(q.id);
 
@@ -178,8 +189,24 @@ export default function PreguntasRespondidasPage() {
                   </div>
                 </div>
 
-                {/* Se muestra el contenido exacto redactado por el alumno, sin signos añadidos */}
                 <h2 className={styles.questionContent}>{q.content}</h2>
+
+                {/* ACORDEÓN DE PREGUNTAS AGRUPADAS */}
+                {q.grouped_questions && q.grouped_questions.length > 0 && (
+                  <details className={styles.groupedAccordion}>
+                    <summary className={styles.groupedSummary}>
+                      Preguntas similares respondidas en esta sección agrupada ({q.grouped_questions.length})
+                    </summary>
+                    <ul className={styles.groupedList}>
+                      {q.grouped_questions.map((gq) => (
+                        <li key={gq.id} className={styles.groupedItem}>
+                          <span className={styles.tagCode}>#{gq.tracking_code}</span>
+                          <span className={styles.groupedText}>{gq.content}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
 
                 {primaryAnswer && (
                   <div className={styles.answerBox}>
