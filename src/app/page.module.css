@@ -1,95 +1,297 @@
-.pageContainer {
+/* =========================================
+   CONTENEDOR Y FONDOS DINÁMICOS
+   ========================================= */
+.wrapper {
+  position: relative;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1.25rem 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
-  padding: 2rem 0;
+  justify-content: center;
+  gap: 1.5rem;
+  min-height: calc(100vh - 4rem); /* Ajuste exacto para pantalla completa en PC */
+  box-sizing: border-border-box;
 }
 
-/* Tarjeta Principal */
+/* Fondo de cuadrícula matemática/técnica tenue */
+.backgroundPattern {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background-color: #f8fafc;
+  background-image: 
+    linear-gradient(to right, rgba(0, 46, 95, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 46, 95, 0.04) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* Destello ambiental radial sutil detras del hero */
+.backgroundGlow {
+  position: fixed;
+  top: 25%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 550px;
+  height: 350px;
+  background: radial-gradient(circle, rgba(217, 119, 6, 0.08) 0%, rgba(0, 46, 95, 0.05) 50%, transparent 80%);
+  filter: blur(50px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* =========================================
+   1. HERO SECTION (Más compacto)
+   ========================================= */
 .heroSection {
-  background-color: #002E5F; /* Azul UADY */
-  color: #FFFFFF;
-  border-radius: 1.25rem;
-  padding: 3.5rem 2rem;
   text-align: center;
-  box-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.15);
-  border: 1px solid #1E293B;
+  max-width: 46rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .heroTitle {
-  font-size: 2.25rem;
-  font-weight: 800;
-  line-height: 1.15;
-  color: #FFFFFF;
-  max-width: 46rem;
-  margin: 0 auto 1.25rem auto;
+  font-size: 2.125rem;
+  font-weight: 900;
+  color: #0f172a;
+  line-height: 1.2;
   letter-spacing: -0.02em;
 }
 
 .heroSubtitle {
-  color: #F1F5F9; /* Blanco suave de alta legibilidad */
-  max-width: 38rem;
-  margin: 0 auto 2.25rem auto;
   font-size: 1rem;
+  color: #475569;
   line-height: 1.5;
-  font-weight: 400;
 }
 
-.buttonGroup {
+/* =========================================
+   2. GRID DE ACCIONES
+   ========================================= */
+.actionsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.875rem;
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.06);
+}
+
+.cardPrimary {
+  border: 2px solid #d97706;
+  background-color: #fffbeb;
+}
+
+.cardIconWrapper {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  background-color: #d97706;
+  color: #ffffff;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
+  margin-bottom: 0.875rem;
 }
 
-@media (min-width: 640px) {
-  .heroTitle {
-    font-size: 3rem;
-  }
-  .buttonGroup {
-    flex-direction: row;
-  }
+.cardIconWrapperSec {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  background-color: #f1f5f9;
+  color: #002e5f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.875rem;
 }
 
-/* Botón Primario (Acción Principal) */
-.primaryButton {
-  background-color: #F59E0B; /* Ámbar vibrante */
-  color: #0F172A; /* Texto oscuro para máximo contraste */
+.cardTitle {
+  font-size: 1.125rem;
   font-weight: 800;
-  padding: 0.875rem 1.75rem;
-  border-radius: 0.75rem;
+  color: #0f172a;
+  margin-bottom: 0.375rem;
+}
+
+.cardDescription {
+  font-size: 0.8125rem;
+  color: #64748b;
+  line-height: 1.45;
+  margin-bottom: 1.25rem;
+  flex-grow: 1;
+}
+
+.btnPrimary {
+  background-color: #d97706;
+  color: #ffffff;
+  font-weight: 800;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
   text-decoration: none;
-  transition: transform 0.1s ease, background-color 0.15s ease;
-  width: 100%;
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  transition: background-color 0.15s ease;
 }
 
-.primaryButton:hover {
-  background-color: #D97706;
-  transform: translateY(-1px);
+.btnPrimary:hover {
+  background-color: #b45309;
 }
 
-/* Botón Secundario (Delineado Blanco para Alto Contraste) */
-.secondaryButton {
-  background-color: transparent;
-  color: #FFFFFF;
-  border: 2px solid #FFFFFF;
+.btnSecondary {
+  background-color: #002e5f;
+  color: #ffffff;
   font-weight: 700;
-  padding: 0.875rem 1.75rem;
-  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
   text-decoration: none;
-  transition: all 0.15s ease;
+  text-align: center;
+  font-size: 0.875rem;
+  transition: background-color 0.15s ease;
+}
+
+.btnSecondary:hover {
+  background-color: #0f172a;
+}
+
+.trackForm {
+  display: flex;
+  gap: 0.375rem;
+}
+
+.trackInputGroup {
+  position: relative;
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+}
+
+.hashPrefix {
+  position: absolute;
+  left: 0.625rem;
+  color: #94a3b8;
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.trackInput {
   width: 100%;
+  padding: 0.625rem 0.5rem 0.625rem 1.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: #0f172a;
+  text-transform: uppercase;
 }
 
-.secondaryButton:hover {
-  background-color: rgba(255, 255, 255, 0.12);
-  border-color: #FFFFFF;
+.trackInput:focus {
+  outline: 2px solid #002e5f;
 }
 
-@media (min-width: 640px) {
-  .primaryButton, .secondaryButton {
-    width: auto;
+.btnTrack {
+  background-color: #002e5f;
+  color: #ffffff;
+  border: none;
+  font-weight: 700;
+  padding: 0.625rem 0.875rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+/* =========================================
+   3. TEASER DE RECURSOS
+   ========================================= */
+.resourcesTeaser {
+  background-color: #002e5f;
+  border-radius: 0.875rem;
+  padding: 1.25rem 1.75rem;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.teaserBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  background-color: rgba(255, 255, 255, 0.15);
+  padding: 0.2rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  margin-bottom: 0.375rem;
+}
+
+.teaserTitle {
+  font-size: 1.125rem;
+  font-weight: 800;
+  margin-bottom: 0.25rem;
+}
+
+.teaserText {
+  font-size: 0.8125rem;
+  color: #e2e8f0;
+  max-width: 38rem;
+  line-height: 1.4;
+}
+
+.teaserButton {
+  background-color: #ffffff;
+  color: #002e5f;
+  font-weight: 800;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  transition: background-color 0.15s ease;
+}
+
+.teaserButton:hover {
+  background-color: #fef3c7;
+}
+
+/* =========================================
+   DISEÑO RESPONSIVO (MÓVIL)
+   ========================================= */
+@media (max-width: 900px) {
+  .wrapper {
+    min-height: auto;
+    padding: 2rem 1.25rem;
+  }
+
+  .actionsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .resourcesTeaser {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .teaserButton {
+    width: 100%;
+    text-align: center;
   }
 }

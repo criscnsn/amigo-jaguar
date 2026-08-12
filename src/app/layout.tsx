@@ -22,9 +22,6 @@ export default function RootLayout({
         <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
           {children}
         </main>
-        <footer className="bg-white border-t border-slate-200 py-6 text-center text-xs font-semibold text-slate-700">
-          Amigo Jaguar — FMAT UADY
-        </footer>
       </body>
     </html>
   );
