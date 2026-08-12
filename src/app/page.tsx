@@ -26,15 +26,20 @@ export default function HomePage() {
           Tus dudas de la FMAT, respondidas por estudiantes avanzados.
         </h1>
         <p className={styles.heroSubtitle}>
-          Resuelve tus preguntas sobre maestros, materias, trámites y la facultad. 100% anónimo y hecho por y para la comunidad FMAT.
+          Resuelve tus preguntas sobre maestros, materias, trámites y la facultad. 
+          <br />
+          100% anónimo y hecho por y para la comunidad FMAT. 
         </p>
       </section>
 
       {/* 2. TARJETAS DE ACCIÓN PRINCIPAL */}
       <section className={styles.actionsGrid}>
+        {/* Tarjeta 1: Hacer pregunta */}
         <div className={`${styles.card} ${styles.cardPrimary}`}>
-          <div className={styles.cardIconWrapper}>
-            <MessageSquarePlus size={22} />
+          <div className={styles.cardHeader}>
+            <div className={styles.cardIconWrapper}>
+              <MessageSquarePlus size={24} />
+            </div>
           </div>
           <h2 className={styles.cardTitle}>Tengo una duda</h2>
           <p className={styles.cardDescription}>
@@ -42,13 +47,16 @@ export default function HomePage() {
           </p>
           <Link href="/preguntas/nueva" className={styles.btnPrimary}>
             Hacer pregunta anónima
-            <ArrowRight size={16} />
+            <ArrowRight size={18} />
           </Link>
         </div>
 
+        {/* Tarjeta 2: Consultar resueltas */}
         <div className={styles.card}>
-          <div className={styles.cardIconWrapperSec}>
-            <HelpCircle size={22} />
+          <div className={styles.cardHeader}>
+            <div className={styles.cardIconWrapperSec}>
+              <HelpCircle size={24} />
+            </div>
           </div>
           <h2 className={styles.cardTitle}>Ver dudas resueltas</h2>
           <p className={styles.cardDescription}>
@@ -59,9 +67,12 @@ export default function HomePage() {
           </Link>
         </div>
 
+        {/* Tarjeta 3: Rastrear código rápido */}
         <div className={styles.card}>
-          <div className={styles.cardIconWrapperSec}>
-            <Search size={22} />
+          <div className={styles.cardHeader}>
+            <div className={styles.cardIconWrapperSec}>
+              <Search size={24} />
+            </div>
           </div>
           <h2 className={styles.cardTitle}>Rastrear mi pregunta</h2>
           <p className={styles.cardDescription}>
@@ -90,7 +101,7 @@ export default function HomePage() {
       <section className={styles.resourcesTeaser}>
         <div className={styles.teaserContent}>
           <div className={styles.teaserBadge}>
-            <Compass size={14} /> Herramientas y Apoyos
+            <Compass size={15} /> Herramientas y Apoyos
           </div>
           <h3 className={styles.teaserTitle}>Croquis FMAT, Kiin y Convenios UADY</h3>
           <p className={styles.teaserText}>

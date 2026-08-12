@@ -6,7 +6,7 @@ import { Navbar } from "@/components/layout/navbar";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Amigo Jaguar - Portal Estudiantil UADY",
+  title: "Amigo Jaguar",
   description: "Resuelve tus dudas sobre la facultad y carreras de la FMAT",
 };
 
