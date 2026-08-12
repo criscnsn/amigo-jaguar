@@ -6,7 +6,6 @@
 ## 🚀 Tecnologías Utilizadas
 
 * **Framework:** Next.js (App Router) con React y TypeScript.
-* **Estilos:** CSS Modules aislados (`*.module.css`) con la paleta de colores oficial UADY ( #002E5F, #D97706, #F8FAFC).
 * **Base de Datos & Autenticación:** Supabase (PostgreSQL) con políticas Row Level Security (RLS) y Supabase Auth.
 * **Seguridad & Anti-Spam:** Cloudflare Turnstile (Captcha invisible en servidor) + Filtro customizado de lenguaje (Profanity).
 * **Interfaz & Utilidades:** Lucide React (iconografía adaptativa) y React Markdown.
