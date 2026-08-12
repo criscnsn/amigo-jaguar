@@ -20,10 +20,6 @@ export default function HomePage() {
 
   return (
     <div className={styles.wrapper}>
-      {/* Fondos dinámicos (Cuadrícula Matemática + Brillo sutil) */}
-      <div className={styles.backgroundPattern} />
-      <div className={styles.backgroundGlow} />
-
       {/* 1. HERO DE BIENVENIDA */}
       <section className={styles.heroSection}>
         <h1 className={styles.heroTitle}>
@@ -36,10 +32,9 @@ export default function HomePage() {
 
       {/* 2. TARJETAS DE ACCIÓN PRINCIPAL */}
       <section className={styles.actionsGrid}>
-        {/* Tarjeta 1: Hacer pregunta */}
         <div className={`${styles.card} ${styles.cardPrimary}`}>
           <div className={styles.cardIconWrapper}>
-            <MessageSquarePlus size={24} />
+            <MessageSquarePlus size={22} />
           </div>
           <h2 className={styles.cardTitle}>Tengo una duda</h2>
           <p className={styles.cardDescription}>
@@ -51,10 +46,9 @@ export default function HomePage() {
           </Link>
         </div>
 
-        {/* Tarjeta 2: Consultar resueltas */}
         <div className={styles.card}>
           <div className={styles.cardIconWrapperSec}>
-            <HelpCircle size={24} />
+            <HelpCircle size={22} />
           </div>
           <h2 className={styles.cardTitle}>Ver dudas resueltas</h2>
           <p className={styles.cardDescription}>
@@ -65,10 +59,9 @@ export default function HomePage() {
           </Link>
         </div>
 
-        {/* Tarjeta 3: Rastrear código rápido */}
         <div className={styles.card}>
           <div className={styles.cardIconWrapperSec}>
-            <Search size={24} />
+            <Search size={22} />
           </div>
           <h2 className={styles.cardTitle}>Rastrear mi pregunta</h2>
           <p className={styles.cardDescription}>

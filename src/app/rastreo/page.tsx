@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import ReactMarkdown from "react-markdown";
 import styles from "./page.module.css";
@@ -14,22 +15,23 @@ interface RastreoResult {
   answers?: { content_markdown: string }[];
 }
 
-export default function RastreoPage() {
+function RastreoContent() {
+  const searchParams = useSearchParams();
   const [trackingCode, setTrackingCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<RastreoResult | null>(null);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!trackingCode.trim()) return;
+  // Tu lógica original de búsqueda y formateo de código
+  const executeSearch = useCallback(async (codeToSearch: string) => {
+    if (!codeToSearch.trim()) return;
 
     setLoading(true);
     setError("");
     setResult(null);
 
     // Normalización robusta del código ingresado
-    let cleanCode = trackingCode.trim().toUpperCase();
+    let cleanCode = codeToSearch.trim().toUpperCase();
     
     // Quitamos el '#' inicial si el usuario lo puso
     if (cleanCode.startsWith("#")) cleanCode = cleanCode.substring(1);
@@ -48,7 +50,6 @@ export default function RastreoPage() {
     const uiDisplayCode = `#${dbQueryCode}`;
 
     try {
-      // Usamos maybeSingle() para no lanzar un error en consola si no hay filas
       const { data, error: fetchError } = await supabase
         .from("questions")
         .select(`
@@ -65,16 +66,30 @@ export default function RastreoPage() {
       
       if (data) {
         setResult(data as unknown as RastreoResult);
-        // Limpiamos el input para que muestre el código formateado visualmente
         setTrackingCode(uiDisplayCode);
       } else {
         setError("No pudimos encontrar una duda con ese código. Verifica que sea correcto.");
+        setTrackingCode(uiDisplayCode);
       }
     } catch (err: any) {
       setError("Ocurrió un error al consultar la base de datos.");
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  // Detecta si la llamada viene desde la portada (/rastreo?code=XXXX)
+  useEffect(() => {
+    const codeParam = searchParams.get("code");
+    if (codeParam) {
+      setTrackingCode(codeParam);
+      executeSearch(codeParam);
+    }
+  }, [searchParams, executeSearch]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    executeSearch(trackingCode);
   };
 
   return (
@@ -141,5 +156,13 @@ export default function RastreoPage() {
         </section>
       )}
     </div>
+  );
+}
+
+export default function RastreoPage() {
+  return (
+    <Suspense fallback={<p style={{ textAlign: "center", padding: "3rem", color: "#64748b" }}>Cargando buscador...</p>}>
+      <RastreoContent />
+    </Suspense>
   );
 }
