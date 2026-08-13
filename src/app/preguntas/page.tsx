@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import { Search, HelpCircle, MessageSquare, ThumbsUp } from "lucide-react";
 import styles from "./page.module.css";
 import { supabase } from "@/lib/supabase/client";
 
@@ -23,13 +24,40 @@ interface AnsweredQuestion {
       semester: number;
     } | null;
   }[];
-  // Nueva propiedad para recibir las preguntas hijas
   grouped_questions: {
     id: string;
     tracking_code: string;
     content: string;
   }[];
 }
+
+// Lista curada de Preguntas Frecuentes para el carrusel superior
+const FAQ_ITEMS = [
+  {
+    id: "faq-1",
+    title: "Placeholder de titulo",
+    category: "Placeholder de categoría",
+    answer: "placeholder de respuesta."
+  },
+  {
+    id: "faq-2",
+    title: "¿Qué pasa si repruebo una materia en primer semestre?",
+    category: "Académico",
+    answer: "No entres en pánico. Tienes derecho a presentar examen extraordinario o recursar la asignatura en el siguiente periodo escolar en que se oferta. Revisa las fechas en el calendario académico FMAT."
+  },
+  {
+    id: "faq-3",
+    title: "¿Cómo solicito la carga máxima/mínima de créditos?",
+    category: "Trámites",
+    answer: "El trámite se realiza durante la semana de ajuste de carga con tu coordinador de carrera. Requieres contar con un promedio ponderado que respalde la solicitud."
+  },
+  {
+    id: "faq-4",
+    title: "¿Dónde consulto los convenios y descuentos UADY?",
+    category: "Beneficios",
+    answer: "Con tu credencial física o digital UADY tienes acceso a descuentos en transporte, librerías, museos y convenios deportivos. La lista completa se encuentra en la sección de Recursos."
+  }
+];
 
 export default function PreguntasRespondidasPage() {
   const [questions, setQuestions] = useState<AnsweredQuestion[]>([]);
@@ -40,7 +68,6 @@ export default function PreguntasRespondidasPage() {
 
   useEffect(() => {
     fetchAnsweredQuestions();
-    
     const savedUpvotes = JSON.parse(localStorage.getItem("upvoted_questions") || "[]");
     setUpvotedIds(savedUpvotes);
   }, []);
@@ -75,7 +102,7 @@ export default function PreguntasRespondidasPage() {
         )
       `)
       .eq("status", "answered")
-      .is("parent_question_id", null) // REGLA CLAVE: Solo trae las preguntas principales, ignora las hijas
+      .is("parent_question_id", null)
       .order("created_at", { ascending: false });
 
     if (!error && data) {
@@ -86,9 +113,7 @@ export default function PreguntasRespondidasPage() {
 
   const handleUpvote = async (questionId: string, currentUpvotes: number) => {
     const hasVoted = upvotedIds.includes(questionId);
-    
     const newCount = hasVoted ? Math.max(0, currentUpvotes - 1) : currentUpvotes + 1;
-
     const updatedUpvotedIds = hasVoted
       ? upvotedIds.filter((id) => id !== questionId)
       : [...upvotedIds, questionId];
@@ -100,47 +125,69 @@ export default function PreguntasRespondidasPage() {
     setUpvotedIds(updatedUpvotedIds);
     localStorage.setItem("upvoted_questions", JSON.stringify(updatedUpvotedIds));
 
-    await supabase
-      .from("questions")
-      .update({ upvotes: newCount })
-      .eq("id", questionId);
+    await supabase.from("questions").update({ upvotes: newCount }).eq("id", questionId);
   };
 
   const filteredQuestions = questions.filter((q) => {
-    const matchesTab =
-      selectedTab === "todas" ? true : q.type === selectedTab;
-
+    const matchesTab = selectedTab === "todas" ? true : q.type === selectedTab;
     const query = searchQuery.toLowerCase();
-    
-    // Búsqueda mejorada: Ahora también busca dentro del texto de las preguntas agrupadas
+
     const matchesSearch =
       q.content.toLowerCase().includes(query) ||
       (q.subject_name && q.subject_name.toLowerCase().includes(query)) ||
       (q.degree_plan && q.degree_plan.toLowerCase().includes(query)) ||
-      (q.grouped_questions && q.grouped_questions.some(gq => gq.content.toLowerCase().includes(query) || gq.tracking_code.toLowerCase().includes(query)));
+      (q.grouped_questions &&
+        q.grouped_questions.some(
+          (gq) =>
+            gq.content.toLowerCase().includes(query) ||
+            gq.tracking_code.toLowerCase().includes(query)
+        ));
 
     return matchesTab && matchesSearch;
   });
 
   return (
-    <div className={styles.container}>
+    <div className={styles.wrapper}>
+      {/* ENCABEZADO PRINCIPAL */}
       <header className={styles.header}>
-        <h1 className={styles.title}>Preguntas Respondidas</h1>
+        <h1 className={styles.title}>Preguntas y Respuestas</h1>
         <p className={styles.subtitle}>
-          Consejos y respuestas de estudiantes avanzados de la FMAT UADY.
+          Consulta las respuestas redactadas por estudiantes avanzados de la FMAT.
         </p>
       </header>
 
-      <div className={styles.controls}>
-        <input
-          type="text"
-          className={styles.searchInput}
-          placeholder="Buscar por palabra clave o código (ej. JAG-XXXX, cálculo, maestro)..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
+      {/* 1. SECCIÓN: PREGUNTAS FRECUENTES (CARRUSEL HORIZONTAL) */}
+      <section className={styles.faqSection}>
+        <div className={styles.faqHeader}>
+          <HelpCircle size={20} className={styles.sectionIcon} />
+          <h2 className={styles.sectionTitle}>Preguntas Frecuentes</h2>
+        </div>
 
-        <div className={styles.tabs}>
+        <div className={styles.faqCarousel}>
+          {FAQ_ITEMS.map((faq) => (
+            <article key={faq.id} className={styles.faqCard}>
+              <span className={styles.faqCategory}>{faq.category}</span>
+              <h3 className={styles.faqTitle}>{faq.title}</h3>
+              <p className={styles.faqAnswer}>{faq.answer}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {/* 2. CONTROLES DE BÚSQUEDA Y FILTRADO */}
+      <section className={styles.controlsSection}>
+        <div className={styles.searchBox}>
+          <Search size={18} className={styles.searchIcon} />
+          <input
+            type="text"
+            className={styles.searchInput}
+            placeholder="Buscar por palabra clave, materia o código (ej. JAG-XXXX, cálculo, maestro)..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+
+        <div className={styles.tabsContainer}>
           <button
             className={`${styles.tab} ${selectedTab === "todas" ? styles.tabActive : ""}`}
             onClick={() => setSelectedTab("todas")}
@@ -151,7 +198,7 @@ export default function PreguntasRespondidasPage() {
             className={`${styles.tab} ${selectedTab === "general" ? styles.tabActive : ""}`}
             onClick={() => setSelectedTab("general")}
           >
-            Generales (Campus)
+            Generales (Facultad)
           </button>
           <button
             className={`${styles.tab} ${selectedTab === "carrera" ? styles.tabActive : ""}`}
@@ -160,80 +207,100 @@ export default function PreguntasRespondidasPage() {
             De Carrera
           </button>
         </div>
-      </div>
+      </section>
 
-      {loading ? (
-        <p style={{ textAlign: "center", color: "#64748b", padding: "2rem" }}>
-          Cargando preguntas respondidas...
-        </p>
-      ) : filteredQuestions.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "3rem", background: "#fff", borderRadius: "1rem", border: "1px solid #e2e8f0" }}>
-          <p style={{ fontWeight: 700, color: "#0f172a" }}>No se encontraron preguntas resueltas</p>
-          <p style={{ fontSize: "0.875rem", color: "#64748b" }}>Intenta cambiando las palabras del buscador o publica la primera duda.</p>
+      {/* 3. SECCIÓN: PREGUNTAS DE LA COMUNIDAD (FEED VERTICAL) */}
+      <section className={styles.communitySection}>
+        <div className={styles.communityHeader}>
+          <MessageSquare size={20} className={styles.sectionIcon} />
+          <h2 className={styles.sectionTitle}>Dudas de la Comunidad</h2>
         </div>
-      ) : (
-        <div className={styles.feed}>
-          {filteredQuestions.map((q) => {
-            const primaryAnswer = q.answers && q.answers.length > 0 ? q.answers[0] : null;
-            const profile = primaryAnswer?.profiles;
-            const hasVoted = upvotedIds.includes(q.id);
 
-            return (
-              <article key={q.id} className={styles.card}>
-                <div className={styles.cardHeader}>
-                  <div className={styles.tags}>
-                    <span className={styles.tagCode}>#{q.tracking_code}</span>
-                    <span className={styles.tag}>{q.type.toUpperCase()}</span>
-                    {q.degree_plan && <span className={styles.tag}>{q.degree_plan}</span>}
-                    {q.subject_name && <span className={styles.tag}>{q.subject_name}</span>}
-                  </div>
-                </div>
+        {loading ? (
+          <div className={styles.loadingBox}>
+            <p>Cargando preguntas de la comunidad...</p>
+          </div>
+        ) : filteredQuestions.length === 0 ? (
+          <div className={styles.emptyCard}>
+            <p className={styles.emptyTitle}>No se encontraron preguntas resueltas</p>
+            <p className={styles.emptySub}>
+              Intenta con otras palabras clave en el buscador o publica una duda nueva.
+            </p>
+          </div>
+        ) : (
+          <div className={styles.feed}>
+            {filteredQuestions.map((q) => {
+              const primaryAnswer = q.answers && q.answers.length > 0 ? q.answers[0] : null;
+              const profile = primaryAnswer?.profiles;
+              const hasVoted = upvotedIds.includes(q.id);
 
-                <h2 className={styles.questionContent}>{q.content}</h2>
-
-                {/* ACORDEÓN DE PREGUNTAS AGRUPADAS */}
-                {q.grouped_questions && q.grouped_questions.length > 0 && (
-                  <details className={styles.groupedAccordion}>
-                    <summary className={styles.groupedSummary}>
-                      Preguntas similares respondidas en esta sección agrupada ({q.grouped_questions.length})
-                    </summary>
-                    <ul className={styles.groupedList}>
-                      {q.grouped_questions.map((gq) => (
-                        <li key={gq.id} className={styles.groupedItem}>
-                          <span className={styles.tagCode}>#{gq.tracking_code}</span>
-                          <span className={styles.groupedText}>{gq.content}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </details>
-                )}
-
-                {primaryAnswer && (
-                  <div className={styles.answerBox}>
-                    <ReactMarkdown>{primaryAnswer.content_markdown}</ReactMarkdown>
-                  </div>
-                )}
-
-                <footer className={styles.responderMeta}>
-                  <div>
-                    Respondió:{" "}
-                    <span className={styles.responderInfo}>
-                      {profile ? `${profile.display_name} (${profile.degree_plan} - ${profile.semester}° sem)` : "Estudiante Avanzado"}
-                    </span>
+              return (
+                <article key={q.id} className={styles.questionCard}>
+                  {/* Badges y Meta */}
+                  <div className={styles.cardMetaHeader}>
+                    <div className={styles.tagsGroup}>
+                      <span className={styles.tagCode}>#{q.tracking_code}</span>
+                      <span className={styles.tagType}>{q.type.toUpperCase()}</span>
+                      {q.degree_plan && <span className={styles.tagPlan}>{q.degree_plan}</span>}
+                      {q.subject_name && <span className={styles.tagSubject}>{q.subject_name}</span>}
+                    </div>
                   </div>
 
-                  <button
-                    onClick={() => handleUpvote(q.id, q.upvotes)}
-                    className={`${styles.upvoteButton} ${hasVoted ? styles.upvoted : ""}`}
-                  >
-                    👍 Me sirvió ({q.upvotes})
-                  </button>
-                </footer>
-              </article>
-            );
-          })}
-        </div>
-      )}
+                  {/* Texto de la pregunta */}
+                  <h3 className={styles.questionContent}>{q.content}</h3>
+
+                  {/* Preguntas agrupadas (Acordeón) */}
+                  {q.grouped_questions && q.grouped_questions.length > 0 && (
+                    <details className={styles.groupedAccordion}>
+                      <summary className={styles.groupedSummary}>
+                        Preguntas similares respondidas en esta sección ({q.grouped_questions.length})
+                      </summary>
+                      <ul className={styles.groupedList}>
+                        {q.grouped_questions.map((gq) => (
+                          <li key={gq.id} className={styles.groupedItem}>
+                            <span className={styles.tagCode}>#{gq.tracking_code}</span>
+                            <span className={styles.groupedText}>{gq.content}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  )}
+
+                  {/* Caja de Respuesta Markdown */}
+                  {primaryAnswer && (
+                    <div className={styles.answerBox}>
+                      <div className={styles.answerLabel}>Respuesta:</div>
+                      <div className={styles.markdownContent}>
+                        <ReactMarkdown>{primaryAnswer.content_markdown}</ReactMarkdown>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Footer con información del respondedor y Votos */}
+                  <footer className={styles.cardFooter}>
+                    <div className={styles.responderInfo}>
+                      Respondió:{" "}
+                      <span className={styles.responderName}>
+                        {profile
+                          ? `${profile.display_name} (${profile.degree_plan} - ${profile.semester}° sem)`
+                          : "Estudiante Avanzado"}
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={() => handleUpvote(q.id, q.upvotes)}
+                      className={`${styles.upvoteBtn} ${hasVoted ? styles.upvoted : ""}`}
+                    >
+                      <ThumbsUp size={15} />
+                      Me sirvió ({q.upvotes})
+                    </button>
+                  </footer>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
