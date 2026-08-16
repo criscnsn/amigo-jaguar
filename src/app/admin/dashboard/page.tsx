@@ -361,15 +361,12 @@ export default function AdminDashboardPage() {
                 </div>
 
                 <div style={{ marginBottom: "1rem" }}>
-                  <label style={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b" }}>
-                    Título de la Pregunta:
+                  <label style={{ fontSize: "0.75rem", fontWeight: 700, color: "#64748b", display: "block", marginBottom: "0.25rem" }}>
+                    Pregunta del alumno:
                   </label>
-                  <input
-                    type="text"
-                    className={styles.editableTitleInput}
-                    value={editedTitles[question.id] ?? question.content}
-                    onChange={(e) => setEditedTitles((prev) => ({ ...prev, [question.id]: e.target.value }))}
-                  />
+                  <p style={{ margin: 0, fontSize: "0.9375rem", fontWeight: 600, color: "#0f172a", lineHeight: 1.4 }}>
+                    {question.content}
+                  </p>
                 </div>
 
                 {/* Mostrar Respuestas Existentes en la Pestaña de Resueltas (Siempre ordenadas por fecha) */}
