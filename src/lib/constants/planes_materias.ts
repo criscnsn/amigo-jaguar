@@ -1,5 +1,7 @@
 export type QuestionType = "general" | "carrera";
-export type QuestionCategory = "materias" | "maestros";
+export type GeneralCategory = "campus" | "tramites";
+export type CareerCategory = "materias" | "maestros";
+export type QuestionCategory = GeneralCategory | CareerCategory;
 
 export type DegreePlanId =
   | "LIS_2016"

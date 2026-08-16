@@ -4,48 +4,76 @@ import { useState } from "react";
 import Link from "next/link";
 import { Turnstile } from "@marsidev/react-turnstile";
 import styles from "./page.module.css";
-import { DEGREE_PLANS, SUBJECTS_BY_PLAN, DegreePlanId, QuestionType, QuestionCategory } from "@/lib/constants/planes_materias";
+import { 
+  DEGREE_PLANS, 
+  SUBJECTS_BY_PLAN, 
+  DegreePlanId, 
+  QuestionType, 
+  GeneralCategory, 
+  CareerCategory 
+} from "@/lib/constants/planes_materias";
 import { hasProfanity } from "@/lib/utils/profanity";
 import { generateTrackingCode } from "@/lib/utils/tracking-code";
 
+const MAX_CHAR_LIMIT = 320;
+
 export default function NuevaPreguntaPage() {
-  // Estado del árbol de decisión
   const [questionType, setQuestionType] = useState<QuestionType>("general");
+  
+  const [generalCategory, setGeneralCategory] = useState<GeneralCategory>("campus");
+  const [careerCategory, setCareerCategory] = useState<CareerCategory>("materias");
+
   const [degreePlan, setDegreePlan] = useState<DegreePlanId>("LIS_2016");
-  const [semester, setSemester] = useState<number>(1);
-  const [category, setCategory] = useState<QuestionCategory>("materias");
   const [selectedSubject, setSelectedSubject] = useState<string>("");
+  const [semester, setSemester] = useState<number>(1);
   const [content, setContent] = useState<string>("");
 
-  // Estados de interfaz y carga
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [submittedCode, setSubmittedCode] = useState<string | null>(null);
   const [turnstileToken, setTurnstileToken] = useState<string>("");
 
+  // Cálculo para el anillo estilo Twitter
+  const remainingChars = MAX_CHAR_LIMIT - content.length;
+  const progressPercentage = Math.min((content.length / MAX_CHAR_LIMIT) * 100, 100);
+  const circleRadius = 9;
+  const circleCircumference = 2 * Math.PI * circleRadius;
+  const strokeDashoffset = circleCircumference - (progressPercentage / 100) * circleCircumference;
+
+  // Color dinámico según la cercanía al límite
+  const circleColor = 
+    remainingChars <= 0 
+      ? "#dc2626" 
+      : remainingChars <= 40 
+      ? "#d97706" 
+      : "#002e5f";
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    // 1. Validaciones básicas de presencia
     if (!content.trim()) {
       setError("Por favor escribe el detalle de tu duda.");
       return;
     }
 
-    if (questionType === "carrera" && category === "materias" && !selectedSubject) {
-      setError("Por favor selecciona la materia sobre la que deseas preguntar.");
+    if (content.length > MAX_CHAR_LIMIT) {
+      setError(`Tu pregunta excede el límite de ${MAX_CHAR_LIMIT} caracteres.`);
       return;
     }
 
-    // 2. Validación de filtro anti-groserías
+    if (questionType === "carrera" && !selectedSubject) {
+      setError("Por favor selecciona la materia correspondiente.");
+      return;
+    }
+
     if (hasProfanity(content)) {
-      setError("Tu mensaje contiene palabras o expresiones no permitidas. Por favor mantén un lenguaje respetuoso.");
+      setError("Tu mensaje contiene palabras no permitidas. Por favor mantén un lenguaje respetuoso.");
       return;
     }
 
     if (!turnstileToken) {
-      setError("Validación de seguridad en progreso. Por favor espera un segundo y vuelve a intentar.");
+      setError("Validación de seguridad en progreso. Espera un segundo y vuelve a intentar.");
       return;
     }
 
@@ -54,7 +82,6 @@ export default function NuevaPreguntaPage() {
     try {
       const trackingCode = generateTrackingCode();
 
-      // Enviar datos + Token a nuestra ruta segura del servidor
       const response = await fetch("/api/questions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -63,9 +90,9 @@ export default function NuevaPreguntaPage() {
           tracking_code: trackingCode,
           type: questionType,
           degree_plan: questionType === "carrera" ? degreePlan : null,
-          category: questionType === "carrera" ? category : null,
-          subject_name: questionType === "carrera" && category === "materias" ? selectedSubject : null,
-          semester: semester,
+          category: questionType === "carrera" ? careerCategory : generalCategory,
+          subject_name: questionType === "carrera" ? selectedSubject : null,
+          semester: questionType === "carrera" ? semester : null,
           content: content.trim(),
           status: "pending",
           upvotes: 0,
@@ -86,7 +113,6 @@ export default function NuevaPreguntaPage() {
     }
   };
 
-  // Si la pregunta ya se envió con éxito, mostramos el código de rastreo
   if (submittedCode) {
     return (
       <div className={styles.container}>
@@ -106,7 +132,7 @@ export default function NuevaPreguntaPage() {
                 setSubmittedCode(null);
                 setContent("");
                 setSelectedSubject("");
-                setTurnstileToken(""); // Resetear token para la nueva pregunta
+                setTurnstileToken("");
               }}
               style={{ padding: "0.75rem 1.25rem", borderRadius: "0.5rem", border: "1px solid #cbd5e1", background: "#fff", cursor: "pointer", fontWeight: 700 }}
             >
@@ -128,7 +154,6 @@ export default function NuevaPreguntaPage() {
         <p className={styles.subtitle}>Tu duda será publicada de forma 100% anónima.</p>
 
         <form onSubmit={handleSubmit}>
-          {/* El widget de Turnstile en modo invisible */}
           <Turnstile
             siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
             onSuccess={(token) => setTurnstileToken(token)}
@@ -139,21 +164,55 @@ export default function NuevaPreguntaPage() {
           <div className={styles.formGroup}>
             <label className={styles.label}>1. ¿De qué trata tu duda?</label>
             <div className={styles.typeSelector}>
-              <div className={`${styles.typeCard} ${questionType === "general" ? styles.typeCardActive : ""}`} onClick={() => setQuestionType("general")}>
-                Duda General (Campus / Trámites)
+              <div 
+                className={`${styles.typeCard} ${questionType === "general" ? styles.typeCardActive : ""}`} 
+                onClick={() => setQuestionType("general")}
+              >
+                Duda General
               </div>
-              <div className={`${styles.typeCard} ${questionType === "carrera" ? styles.typeCardActive : ""}`} onClick={() => setQuestionType("carrera")}>
-                Duda de Carrera / Materias
+              <div 
+                className={`${styles.typeCard} ${questionType === "carrera" ? styles.typeCardActive : ""}`} 
+                onClick={() => setQuestionType("carrera")}
+              >
+                Duda de Carrera / Materia
               </div>
             </div>
           </div>
 
-          {/* PASO 2: Selección de Carrera */}
+          {/* PASO 2: Opciones para Dudas Generales */}
+          {questionType === "general" && (
+            <div className={styles.formGroup}>
+              <label className={styles.label}>2. Especificamente sobre:</label>
+              <div className={styles.typeSelector}>
+                <div 
+                  className={`${styles.typeCard} ${generalCategory === "campus" ? styles.typeCardActive : ""}`}
+                  onClick={() => setGeneralCategory("campus")}
+                >
+                  Campus / Instalaciones
+                </div>
+                <div 
+                  className={`${styles.typeCard} ${generalCategory === "tramites" ? styles.typeCardActive : ""}`}
+                  onClick={() => setGeneralCategory("tramites")}
+                >
+                  Trámites
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* PASO 2 Y 3: Opciones para Dudas de Carrera */}
           {questionType === "carrera" && (
             <>
               <div className={styles.formGroup}>
-                <label className={styles.label}>Selecciona tu Carrera y Plan</label>
-                <select className={styles.select} value={degreePlan} onChange={(e) => { setDegreePlan(e.target.value as DegreePlanId); setSelectedSubject(""); }}>
+                <label className={styles.label}>2. Selecciona tu Carrera y Plan</label>
+                <select 
+                  className={styles.select} 
+                  value={degreePlan} 
+                  onChange={(e) => { 
+                    setDegreePlan(e.target.value as DegreePlanId); 
+                    setSelectedSubject(""); 
+                  }}
+                >
                   {DEGREE_PLANS.map((plan) => (
                     <option key={plan.id} value={plan.id}>{plan.label}</option>
                   ))}
@@ -161,49 +220,111 @@ export default function NuevaPreguntaPage() {
               </div>
 
               <div className={styles.formGroup}>
-                <label className={styles.label}>¿Sobre qué es la duda?</label>
+                <label className={styles.label}>3. ¿Qué deseas consultar?</label>
                 <div className={styles.typeSelector}>
-                  <div className={`${styles.typeCard} ${category === "materias" ? styles.typeCardActive : ""}`} onClick={() => setCategory("materias")}>Sobre una Materia</div>
-                  <div className={`${styles.typeCard} ${category === "maestros" ? styles.typeCardActive : ""}`} onClick={() => setCategory("maestros")}>Sobre Maestros</div>
+                  <div 
+                    className={`${styles.typeCard} ${careerCategory === "materias" ? styles.typeCardActive : ""}`} 
+                    onClick={() => setCareerCategory("materias")}
+                  >
+                    Sobre la Materia
+                  </div>
+                  <div 
+                    className={`${styles.typeCard} ${careerCategory === "maestros" ? styles.typeCardActive : ""}`} 
+                    onClick={() => setCareerCategory("maestros")}
+                  >
+                    Sobre Maestros de la Materia
+                  </div>
                 </div>
               </div>
 
-              {category === "materias" && (
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>Selecciona la Materia</label>
-                  <select className={styles.select} value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)}>
-                    <option value="">-- Selecciona una asignatura --</option>
-                    {SUBJECTS_BY_PLAN[degreePlan].map((subject, idx) => (
-                      <option key={idx} value={subject}>{subject}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
+              <div className={styles.formGroup}>
+                <label className={styles.label}>4. Selecciona la Materia</label>
+                <select 
+                  className={styles.select} 
+                  value={selectedSubject} 
+                  onChange={(e) => setSelectedSubject(e.target.value)}
+                >
+                  <option value="">-- Selecciona una asignatura --</option>
+                  {SUBJECTS_BY_PLAN[degreePlan].map((subject, idx) => (
+                    <option key={idx} value={subject}>{subject}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.label}>5. ¿En qué semestre estás actualmente?</label>
+                <select 
+                  className={styles.select} 
+                  value={semester} 
+                  onChange={(e) => setSemester(Number(e.target.value))}
+                >
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((sem) => (
+                    <option key={sem} value={sem}>{sem}° Semestre</option>
+                  ))}
+                </select>
+              </div>
             </>
           )}
 
-          {/* PASO 3 y 4: Semestre y Redacción */}
+          {/* REDACCIÓN DE LA DUDA + ANILLO DE CARACTERES */}
           <div className={styles.formGroup}>
-            <label className={styles.label}>¿En qué semestre estás actualmente?</label>
-            <select className={styles.select} value={semester} onChange={(e) => setSemester(Number(e.target.value))}>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((sem) => (
-                <option key={sem} value={sem}>{sem}° Semestre</option>
-              ))}
-            </select>
-          </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <label className={styles.label}>
+                {questionType === "carrera" ? "6. Escribe tu duda en detalle" : "3. Escribe tu duda en detalle"}
+              </label>
 
-          {/* PASO 4: Redacción de la duda */}
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Escribe tu duda en detalle</label>
+              {/* Indicador de límite estilo Twitter no le digan a elos musk plox*/}
+              <div style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
+                <span style={{ fontSize: "0.75rem", fontWeight: 700, color: circleColor }}>
+                  {remainingChars}
+                </span>
+                <svg width="24" height="24" viewBox="0 0 24 24">
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r={circleRadius}
+                    stroke="#e2e8f0"
+                    strokeWidth="2.5"
+                    fill="none"
+                  />
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r={circleRadius}
+                    stroke={circleColor}
+                    strokeWidth="2.5"
+                    fill="none"
+                    strokeDasharray={circleCircumference}
+                    strokeDashoffset={strokeDashoffset}
+                    strokeLinecap="round"
+                    style={{
+                      transform: "rotate(-90deg)",
+                      transformOrigin: "50% 50%",
+                      transition: "stroke-dashoffset 0.15s ease, stroke 0.15s ease",
+                    }}
+                  />
+                </svg>
+              </div>
+            </div>
+
             <textarea
               className={styles.textarea}
-              placeholder="Ej. ¿Qué profesor recomiendan para cursar esta materia?"
+              placeholder={
+                questionType === "carrera"
+                  ? careerCategory === "maestros"
+                    ? "Ej. ¿Qué profesor recomiendan para esta materia y cuál es su método de evaluación?"
+                    : "Ej. ¿Qué temas o conocimientos previos se necesitan para llevar esta materia?"
+                  : "Ej. ¿Donde dan asesorias o dónde se pagan acompañamientos?"
+              }
               value={content}
-              onChange={(e) => { setContent(e.target.value); if (error) setError(null); }}
+              maxLength={MAX_CHAR_LIMIT}
+              onChange={(e) => { 
+                setContent(e.target.value); 
+                if (error) setError(null); 
+              }}
             />
           </div>
 
-          {/* Error de validación o base de datos */}
           {error && <div className={styles.errorMessage}>{error}</div>}
 
           <button type="submit" className={styles.submitButton} disabled={loading || !turnstileToken}>
