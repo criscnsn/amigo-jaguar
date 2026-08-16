@@ -2,9 +2,21 @@
 
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { Search, HelpCircle, MessageSquare, ThumbsUp } from "lucide-react";
+import { Search, HelpCircle, MessageSquare, ThumbsUp, AlertCircle } from "lucide-react";
 import styles from "./page.module.css";
 import { supabase } from "@/lib/supabase/client";
+
+interface Answer {
+  id: string;
+  content_markdown: string;
+  is_annotation: boolean;
+  created_at: string;
+  profiles: {
+    display_name: string;
+    degree_plan: string;
+    semester: number;
+  } | null;
+}
 
 interface AnsweredQuestion {
   id: string;
@@ -15,15 +27,7 @@ interface AnsweredQuestion {
   semester: number;
   content: string;
   upvotes: number;
-  answers: {
-    content_markdown: string;
-    created_at: string;
-    profiles: {
-      display_name: string;
-      degree_plan: string;
-      semester: number;
-    } | null;
-  }[];
+  answers: Answer[];
   grouped_questions: {
     id: string;
     tracking_code: string;
@@ -31,13 +35,12 @@ interface AnsweredQuestion {
   }[];
 }
 
-// Lista curada de Preguntas Frecuentes para el carrusel superior
 const FAQ_ITEMS = [
   {
     id: "faq-1",
-    title: "Placeholder de titulo",
-    category: "Placeholder de categoría",
-    answer: "placeholder de respuesta."
+    title: "Q placeholder",
+    category: "Herramientas",
+    answer: "a placeholder"
   },
   {
     id: "faq-2",
@@ -87,7 +90,9 @@ export default function PreguntasRespondidasPage() {
         content,
         upvotes,
         answers (
+          id,
           content_markdown,
+          is_annotation,
           created_at,
           profiles (
             display_name,
@@ -148,7 +153,6 @@ export default function PreguntasRespondidasPage() {
 
   return (
     <div className={styles.wrapper}>
-      {/* ENCABEZADO PRINCIPAL */}
       <header className={styles.header}>
         <h1 className={styles.title}>Preguntas y Respuestas</h1>
         <p className={styles.subtitle}>
@@ -156,7 +160,7 @@ export default function PreguntasRespondidasPage() {
         </p>
       </header>
 
-      {/* 1. SECCIÓN: PREGUNTAS FRECUENTES (CARRUSEL HORIZONTAL) */}
+      {/* CARRUSEL DE PREGUNTAS FRECUENTES */}
       <section className={styles.faqSection}>
         <div className={styles.faqHeader}>
           <HelpCircle size={20} className={styles.sectionIcon} />
@@ -174,14 +178,14 @@ export default function PreguntasRespondidasPage() {
         </div>
       </section>
 
-      {/* 2. CONTROLES DE BÚSQUEDA Y FILTRADO */}
+      {/* CONTROLES Y BÚSQUEDA */}
       <section className={styles.controlsSection}>
         <div className={styles.searchBox}>
           <Search size={18} className={styles.searchIcon} />
           <input
             type="text"
             className={styles.searchInput}
-            placeholder="Buscar por palabra clave, materia o código (ej. JAG-XXXX, cálculo, maestro)..."
+            placeholder="Buscar por palabra clave, materia o código (ej. JAG-XXXX)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -198,7 +202,7 @@ export default function PreguntasRespondidasPage() {
             className={`${styles.tab} ${selectedTab === "general" ? styles.tabActive : ""}`}
             onClick={() => setSelectedTab("general")}
           >
-            Generales (Facultad)
+            Generales
           </button>
           <button
             className={`${styles.tab} ${selectedTab === "carrera" ? styles.tabActive : ""}`}
@@ -209,7 +213,7 @@ export default function PreguntasRespondidasPage() {
         </div>
       </section>
 
-      {/* 3. SECCIÓN: PREGUNTAS DE LA COMUNIDAD (FEED VERTICAL) */}
+      {/* FEED DE PREGUNTAS DE LA COMUNIDAD */}
       <section className={styles.communitySection}>
         <div className={styles.communityHeader}>
           <MessageSquare size={20} className={styles.sectionIcon} />
@@ -224,19 +228,24 @@ export default function PreguntasRespondidasPage() {
           <div className={styles.emptyCard}>
             <p className={styles.emptyTitle}>No se encontraron preguntas resueltas</p>
             <p className={styles.emptySub}>
-              Intenta con otras palabras clave en el buscador o publica una duda nueva.
+              Intenta con otras palabras clave en el buscador.
             </p>
           </div>
         ) : (
           <div className={styles.feed}>
             {filteredQuestions.map((q) => {
-              const primaryAnswer = q.answers && q.answers.length > 0 ? q.answers[0] : null;
-              const profile = primaryAnswer?.profiles;
+              // Separar respuestas principales de anotaciones
+              const sortedAnswers = [...(q.answers || [])].sort(
+                (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+              );
+
+              const mainAnswer = sortedAnswers.find((ans) => !ans.is_annotation) || sortedAnswers[0];
+              const annotations = sortedAnswers.filter((ans) => ans.is_annotation);
+              const profile = mainAnswer?.profiles;
               const hasVoted = upvotedIds.includes(q.id);
 
               return (
                 <article key={q.id} className={styles.questionCard}>
-                  {/* Badges y Meta */}
                   <div className={styles.cardMetaHeader}>
                     <div className={styles.tagsGroup}>
                       <span className={styles.tagCode}>#{q.tracking_code}</span>
@@ -246,10 +255,9 @@ export default function PreguntasRespondidasPage() {
                     </div>
                   </div>
 
-                  {/* Texto de la pregunta */}
                   <h3 className={styles.questionContent}>{q.content}</h3>
 
-                  {/* Preguntas agrupadas (Acordeón) */}
+                  {/* Acordeón de preguntas vinculadas */}
                   {q.grouped_questions && q.grouped_questions.length > 0 && (
                     <details className={styles.groupedAccordion}>
                       <summary className={styles.groupedSummary}>
@@ -266,17 +274,32 @@ export default function PreguntasRespondidasPage() {
                     </details>
                   )}
 
-                  {/* Caja de Respuesta Markdown */}
-                  {primaryAnswer && (
+                  {/* Respuesta Principal */}
+                  {mainAnswer && (
                     <div className={styles.answerBox}>
-                      <div className={styles.answerLabel}>Respuesta:</div>
+                      <div className={styles.answerLabel}>Respuesta Principal:</div>
                       <div className={styles.markdownContent}>
-                        <ReactMarkdown>{primaryAnswer.content_markdown}</ReactMarkdown>
+                        <ReactMarkdown>{mainAnswer.content_markdown}</ReactMarkdown>
                       </div>
                     </div>
                   )}
 
-                  {/* Footer con información del respondedor y Votos */}
+                  {/* Anotaciones / Correcciones (Caja Amarilla) */}
+                  {annotations.length > 0 && (
+                    <div className={styles.annotationsWrapper}>
+                      {annotations.map((ann) => (
+                        <div key={ann.id} className={styles.annotationBox}>
+                          <div className={styles.annotationBadge}>
+                            <AlertCircle size={14} /> Anotación / Actualización posterior:
+                          </div>
+                          <div className={styles.markdownContent}>
+                            <ReactMarkdown>{ann.content_markdown}</ReactMarkdown>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   <footer className={styles.cardFooter}>
                     <div className={styles.responderInfo}>
                       Respondió:{" "}

@@ -1,24 +1,28 @@
 .container {
-  max-width: 64rem;
+  max-width: 76rem;
   margin: 0 auto;
-  padding: 1.5rem 0;
+  padding: 1.5rem 1rem;
+  box-sizing: border-box;
 }
 
+/* Header de Sesión */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   background-color: #ffffff;
   padding: 1.25rem 1.5rem;
-  border-radius: 0.75rem;
+  border-radius: 0.875rem;
   border: 1px solid #e2e8f0;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
 .title {
-  font-size: 1.25rem;
+  font-size: 1.35rem;
   font-weight: 800;
   color: #0f172a;
+  margin: 0;
 }
 
 .logoutButton {
@@ -30,6 +34,7 @@
   font-size: 0.8125rem;
   font-weight: 700;
   cursor: pointer;
+  transition: all 0.15s ease;
 }
 
 .logoutButton:hover {
@@ -37,11 +42,41 @@
   color: #0f172a;
 }
 
-/* Barra de Filtros */
-.filterBar {
+/* Pestañas de Navegación del Panel */
+.tabsContainer {
   display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.tabButton {
+  background-color: #ffffff;
+  border: 1.5px solid #cbd5e1;
+  color: #475569;
+  font-weight: 700;
+  font-size: 0.875rem;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.625rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tabButtonActive {
+  background-color: #002e5f;
+  color: #ffffff;
+  border-color: #002e5f;
+}
+
+/* Multi-Barra de Filtros */
+.filterContainer {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.875rem;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
-  margin-bottom: 2rem;
 }
 
 .searchInput {
@@ -50,13 +85,34 @@
   border-radius: 0.5rem;
   border: 1.5px solid #cbd5e1;
   font-size: 0.875rem;
+  color: #0f172a;
   outline: none;
+  box-sizing: border-box;
 }
 
 .searchInput:focus {
   border-color: #002e5f;
 }
 
+.filterGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+}
+
+.filterSelect {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1.5px solid #cbd5e1;
+  background-color: #ffffff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #334155;
+  outline: none;
+}
+
+/* Tarjetas de Dudas */
 .questionList {
   display: flex;
   flex-direction: column;
@@ -65,41 +121,83 @@
 
 .questionCard {
   background-color: #ffffff;
-  border-radius: 0.75rem;
+  border-radius: 0.875rem;
   border: 1px solid #e2e8f0;
   padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
 }
 
 .questionMeta {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.375rem;
   flex-wrap: wrap;
-  margin-bottom: 0.75rem;
-}
-
-.tag {
-  background-color: #f0f7ff;
-  color: #002e5f;
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 0.25rem 0.625rem;
-  border-radius: 0.375rem;
+  align-items: center;
+  margin-bottom: 0.875rem;
 }
 
 .tagCode {
-  background-color: #f1f5f9;
-  color: #475569;
+  background-color: #002e5f;
+  color: #ffffff;
   font-size: 0.75rem;
   font-weight: 800;
-  padding: 0.25rem 0.625rem;
+  padding: 0.25rem 0.5rem;
   border-radius: 0.375rem;
 }
 
-.questionContent {
+.tagType {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+}
+
+.tagCategory {
+  background-color: #fef3c7;
+  color: #b45309;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+}
+
+.tagPlan {
+  background-color: #f1f5f9;
+  color: #475569;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+}
+
+.tagSubject {
+  background-color: #f0fdf4;
+  color: #15803d;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  border: 1px solid #bbf7d0;
+}
+
+.editableTitleInput {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
   font-size: 0.9375rem;
-  color: #1e293b;
-  margin-bottom: 1.25rem;
-  line-height: 1.5;
+  font-weight: 700;
+  color: #0f172a;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 0.5rem;
+  background-color: #fafafa;
+  margin-top: 0.375rem;
+  box-sizing: border-box;
+}
+
+.editableTitleInput:focus {
+  border-color: #d97706;
+  background-color: #ffffff;
+  outline: none;
 }
 
 .answerArea {
@@ -107,20 +205,22 @@
   flex-direction: column;
   gap: 0.75rem;
   background-color: #f8fafc;
-  padding: 1rem;
-  border-radius: 0.5rem;
+  padding: 1.25rem;
+  border-radius: 0.625rem;
   border: 1px solid #e2e8f0;
+  margin-top: 1rem;
 }
 
 .textarea {
   width: 100%;
   min-height: 6rem;
   padding: 0.75rem;
-  border-radius: 0.375rem;
+  border-radius: 0.5rem;
   border: 1.5px solid #cbd5e1;
   font-size: 0.875rem;
   color: #0f172a;
   outline: none;
+  box-sizing: border-box;
 }
 
 .textarea:focus {
@@ -131,18 +231,19 @@
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
-  margin-top: 0.5rem;
+  margin-top: 0.25rem;
 }
 
 .publishButton {
   background-color: #d97706;
   color: #ffffff;
-  font-weight: 700;
+  font-weight: 800;
   padding: 0.625rem 1.25rem;
-  border-radius: 0.375rem;
+  border-radius: 0.5rem;
   border: none;
   cursor: pointer;
   font-size: 0.8125rem;
+  transition: background-color 0.15s ease;
 }
 
 .publishButton:hover {
@@ -150,56 +251,22 @@
 }
 
 .groupButton {
-  background-color: #f1f5f9;
+  background-color: #ffffff;
   color: #334155;
   font-weight: 700;
   padding: 0.625rem 1.25rem;
-  border-radius: 0.375rem;
+  border-radius: 0.5rem;
   border: 1px solid #cbd5e1;
   cursor: pointer;
   font-size: 0.8125rem;
+  transition: all 0.15s ease;
 }
 
 .groupButton:hover {
-  background-color: #e2e8f0;
-  color: #0f172a;
+  background-color: #f1f5f9;
 }
 
-/* Modal de Agrupamiento */
-.modalOverlay {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(15, 23, 42, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-}
-
-.modalContent {
-  background-color: #ffffff;
-  width: 100%;
-  max-width: 32rem;
-  border-radius: 1rem;
-  padding: 2rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-}
-
-.modalTitle {
-  font-size: 1.25rem;
-  font-weight: 800;
-  margin-bottom: 1rem;
-}
-
-.modalSelect {
-  width: 100%;
-  padding: 0.75rem;
-  border-radius: 0.5rem;
-  border: 1.5px solid #cbd5e1;
-  margin-bottom: 1.5rem;
-  font-size: 0.875rem;
-}
-/* Modificaciones y adiciones para el Bento Grid Modal */
+/* Modal Bento Grid Ampliado */
 .modalOverlay {
   position: fixed;
   inset: 0;
@@ -214,10 +281,10 @@
 .modalContent {
   background-color: #ffffff;
   width: 100%;
-  max-width: 48rem;
-  max-height: 85vh;
+  max-width: 56rem; /* Ampliado para mejor lectura de respuestas */
+  max-height: 90vh;
   border-radius: 1rem;
-  padding: 1.75rem;
+  padding: 1.5rem;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
@@ -234,6 +301,7 @@
   font-size: 1.25rem;
   font-weight: 800;
   color: #0f172a;
+  margin: 0 0 0.25rem 0;
 }
 
 .closeModalButton {
@@ -242,25 +310,19 @@
   font-size: 1.25rem;
   color: #64748b;
   cursor: pointer;
-  padding: 0.25rem;
 }
 
-.closeModalButton:hover {
-  color: #0f172a;
-}
-
-/* Contenedor Bento Grid con Scroll */
 .bentoGridContainer {
   flex: 1;
   overflow-y: auto;
-  max-height: 26rem;
+  max-height: 24rem;
   padding-right: 0.25rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .bentoGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 0.875rem;
 }
 
@@ -284,14 +346,6 @@
 .bentoCardSelected {
   border-color: #d97706 !important;
   background-color: #fef3c7 !important;
-  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.2);
-}
-
-.bentoCardHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
 }
 
 .bentoQuestionText {
@@ -299,32 +353,19 @@
   color: #1e293b;
   font-weight: 600;
   line-height: 1.35;
-  margin-bottom: 0.75rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  margin: 0.5rem 0;
 }
 
-.bentoCardFooter {
-  border-top: 1px solid #e2e8f0;
-  padding-top: 0.5rem;
-  margin-top: auto;
-}
-
-.expandPreviewToggle {
+.previewToggle {
   background: none;
   border: none;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 800;
   color: #002e5f;
   cursor: pointer;
   padding: 0;
-}
-
-.expandPreviewToggle:hover {
-  text-decoration: underline;
+  margin-top: 0.5rem;
+  text-align: left;
 }
 
 .previewAnswerBox {
@@ -336,6 +377,16 @@
   font-size: 0.8125rem;
   color: #334155;
   line-height: 1.4;
+  max-height: 8rem;
+  overflow-y: auto;
+}
+
+.editParentBox {
+  background-color: #f0f7ff;
+  border: 1px solid #bae6fd;
+  border-radius: 0.625rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
 }
 
 .modalFooterActions {
@@ -344,4 +395,33 @@
   gap: 0.75rem;
   border-top: 1px solid #e2e8f0;
   padding-top: 1rem;
+}
+
+/* Adaptación completa a Celulares */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .logoutButton {
+    width: 100%;
+  }
+
+  .filterGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .actionButtons {
+    flex-direction: column;
+  }
+
+  .publishButton, .groupButton {
+    width: 100%;
+  }
+
+  .bentoGrid {
+    grid-template-columns: 1fr;
+  }
 }
