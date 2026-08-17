@@ -141,10 +141,7 @@ export default function AdminDashboardPage() {
 
       const { error: qError } = await supabase
         .from("questions")
-        .update({
-          status: "answered",
-          content: newTitleContent ? newTitleContent.trim() : undefined,
-        })
+        .update({ status: "answered"})
         .eq("id", questionId);
 
       if (qError) throw qError;
