@@ -23,36 +23,31 @@ interface Question {
 export default function AdminDashboardPage() {
   const router = useRouter();
 
-  // Navegación por pestañas
   const [activeTab, setActiveTab] = useState<"pending" | "answered">("pending");
-
-  // Estado general de preguntas y sesión
   const [pendingQuestions, setPendingQuestions] = useState<Question[]>([]);
   const [answeredQuestions, setAnsweredQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeUser, setActiveUser] = useState<any>(null);
 
-  // Banner de notificación personalizado (Cero popups de alerta)
   const [toastNotification, setToastNotification] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
-  // Diccionarios de edición de texto
   const [answerTexts, setAnswerTexts] = useState<Record<string, string>>({});
   const [editedTitles, setEditedTitles] = useState<Record<string, string>>({});
   const [submittingId, setSubmittingId] = useState<string | null>(null);
 
-  // Filtros de búsqueda
   const [filterSearchText, setFilterSearchText] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [filterDegreePlan, setFilterDegreePlan] = useState<string>("all");
   const [filterSemester, setFilterSemester] = useState<string>("all");
 
-  // Modal Bento Grid y previsualización
   const [groupModalForId, setGroupModalForId] = useState<string | null>(null);
   const [selectedParentQuestion, setSelectedParentQuestion] = useState<Question | null>(null);
   const [unifiedParentTitle, setUnifiedParentTitle] = useState("");
   const [modalSearchText, setModalSearchText] = useState("");
   const [expandedPreviewCardId, setExpandedPreviewCardId] = useState<string | null>(null);
+
+  const [deleteModalQuestion, setDeleteModalQuestion] = useState<Question | null>(null);
 
   useEffect(() => {
     const checkAuthAndFetch = async () => {
@@ -76,14 +71,12 @@ export default function AdminDashboardPage() {
   const fetchQuestions = async () => {
     setLoading(true);
 
-    // 1. Cargar dudas pendientes
     const { data: pending } = await supabase
       .from("questions")
       .select("*")
       .eq("status", "pending")
       .order("created_at", { ascending: true });
 
-    // 2. Cargar dudas resueltas principales
     const { data: answered } = await supabase
       .from("questions")
       .select(`
@@ -116,11 +109,8 @@ export default function AdminDashboardPage() {
     setLoading(false);
   };
 
-  // Guardar Respuesta (Principal o Anotación)
   const handleSaveAnswer = async (questionId: string, isAnnotation: boolean) => {
     const textContent = answerTexts[questionId];
-    const newTitleContent = editedTitles[questionId];
-
     if (!textContent || !textContent.trim()) {
       showToast("Escribe un texto antes de enviar.", "error");
       return;
@@ -141,14 +131,12 @@ export default function AdminDashboardPage() {
 
       const { error: qError } = await supabase
         .from("questions")
-        .update({ status: "answered"})
+        .update({ status: "answered" })
         .eq("id", questionId);
 
       if (qError) throw qError;
 
-      showToast(
-        isAnnotation ? "Anotación agregada con éxito." : "Respuesta actualizada correctamente."
-      );
+      showToast(isAnnotation ? "Anotación agregada con éxito." : "Respuesta actualizada correctamente.");
       setAnswerTexts((prev) => ({ ...prev, [questionId]: "" }));
       fetchQuestions();
     } catch (err: any) {
@@ -158,7 +146,30 @@ export default function AdminDashboardPage() {
     }
   };
 
-  // Vincular Duda a Pregunta Existente
+  const handleDeleteQuestion = async () => {
+    if (!deleteModalQuestion) return;
+
+    setSubmittingId(deleteModalQuestion.id);
+
+    try {
+      const { error } = await supabase
+        .from("questions")
+        .delete()
+        .eq("id", deleteModalQuestion.id)
+        .eq("status", "pending");
+
+      if (error) throw error;
+
+      showToast(`Pregunta #${deleteModalQuestion.tracking_code} eliminada con éxito.`);
+      setPendingQuestions((prev) => prev.filter((q) => q.id !== deleteModalQuestion.id));
+      setDeleteModalQuestion(null);
+    } catch (err: any) {
+      showToast("Error al eliminar la pregunta: " + err.message, "error");
+    } finally {
+      setSubmittingId(null);
+    }
+  };
+
   const handleGroupSubmit = async () => {
     if (!groupModalForId || !selectedParentQuestion) return;
 
@@ -232,37 +243,36 @@ export default function AdminDashboardPage() {
     );
   });
 
-  if (loading) return <div style={{ textAlign: "center", padding: "4rem", color: "#64748b" }}>Cargando panel de gestión...</div>;
-
   return (
     <div className={styles.container}>
-      {/* BANNER DE NOTIFICACIÓN FLOTANTE */}
       {toastNotification && (
         <div
           style={{
             position: "fixed",
-            top: "1.5rem",
-            right: "1.5rem",
-            zIndex: 200,
-            padding: "0.875rem 1.25rem",
-            borderRadius: "0.5rem",
+            top: "2rem",
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 300,
+            padding: "0.875rem 1.75rem",
+            borderRadius: "0.625rem",
             fontWeight: 700,
-            fontSize: "0.875rem",
+            fontSize: "0.9375rem",
             color: "#ffffff",
             backgroundColor: toastNotification.type === "success" ? "#15803d" : "#dc2626",
-            boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+            boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.25)",
+            textAlign: "center",
+            minWidth: "280px",
           }}
         >
           {toastNotification.message}
         </div>
       )}
 
-      {/* HEADER DE SESIÓN */}
       <header className={styles.header}>
         <div>
           <h1 className={styles.title}>Panel de Ayudadores FMAT</h1>
           <p style={{ fontSize: "0.8125rem", color: "#64748b", margin: 0 }}>
-            Ayudador activo: {activeUser?.email}
+            Ayudador activo: {activeUser?.email || "Cargando..."}
           </p>
         </div>
         <button onClick={handleLogout} className={styles.logoutButton}>
@@ -270,7 +280,6 @@ export default function AdminDashboardPage() {
         </button>
       </header>
 
-      {/* PESTAÑAS DE NAVEGACIÓN */}
       <div className={styles.tabsContainer}>
         <button
           className={`${styles.tabButton} ${activeTab === "pending" ? styles.tabButtonActive : ""}`}
@@ -286,7 +295,6 @@ export default function AdminDashboardPage() {
         </button>
       </div>
 
-      {/* FILTROS DE BÚSQUEDA */}
       <section className={styles.filterContainer}>
         <input
           type="text"
@@ -327,22 +335,32 @@ export default function AdminDashboardPage() {
         </div>
       </section>
 
-      {/* LISTA DE TARJETAS DE DUDAS */}
-      {filteredQuestions.length === 0 ? (
+      {/* RENDERIZADO CON SKELETONS DE CARGA */}
+      {loading ? (
+        <div className={styles.skeletonSection}>
+          {[1, 2, 3].map((index) => (
+            <div key={index} className={styles.skeletonCard}>
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                <div className={styles.skeletonLine} style={{ width: "80px" }}></div>
+                <div className={styles.skeletonLine} style={{ width: "100px" }}></div>
+                <div className={styles.skeletonLine} style={{ width: "120px" }}></div>
+              </div>
+              <div className={styles.skeletonLine} style={{ width: "65%", height: "1.25rem" }}></div>
+              <div className={styles.skeletonLine} style={{ width: "100%", height: "4.5rem" }}></div>
+            </div>
+          ))}
+        </div>
+      ) : filteredQuestions.length === 0 ? (
         <div style={{ textAlign: "center", padding: "3rem", background: "#fff", borderRadius: "0.875rem", border: "1px solid #e2e8f0" }}>
           <p style={{ fontWeight: 700, color: "#166534" }}>No hay preguntas en esta sección que coincidan con los filtros.</p>
         </div>
       ) : (
         <div className={styles.questionList}>
           {filteredQuestions.map((question) => {
-            // Ordenar respuestas de la más reciente a la más antigua
             const sortedAnswers = question.answers && question.answers.length > 0
-              ? [...question.answers].sort(
-                  (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-                )
+              ? [...question.answers].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
               : [];
 
-            // Seleccionar la respuesta principal más reciente y las anotaciones
             const mainAns = sortedAnswers.find((a) => !a.is_annotation) || sortedAnswers[0];
             const annList = sortedAnswers.filter((a) => a.is_annotation);
 
@@ -366,35 +384,29 @@ export default function AdminDashboardPage() {
                   </p>
                 </div>
 
-                {/* Mostrar Respuestas Existentes en la Pestaña de Resueltas (Siempre ordenadas por fecha) */}
                 {activeTab === "answered" && (
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginBottom: "1rem" }}>
                     {mainAns && (
                       <div style={{ backgroundColor: "#f8fafc", padding: "0.875rem", borderRadius: "0.5rem", borderLeft: "4px solid #10b981" }}>
-                        <p style={{ fontSize: "0.75rem", fontWeight: 800, color: "#047857", margin: "0 0 0.25rem 0" }}>
-                          RESPUESTA PRINCIPAL ACTUAL:
-                        </p>
+                        <p style={{ fontSize: "0.75rem", fontWeight: 800, color: "#047857", margin: "0 0 0.25rem 0" }}>RESPUESTA PRINCIPAL ACTUAL:</p>
                         <ReactMarkdown>{mainAns.content_markdown}</ReactMarkdown>
                       </div>
                     )}
                     {annList.map((ann) => (
                       <div key={ann.id} style={{ backgroundColor: "#fffbeb", padding: "0.875rem", borderRadius: "0.5rem", borderLeft: "4px solid #d97706" }}>
-                        <p style={{ fontSize: "0.75rem", fontWeight: 800, color: "#b45309", margin: "0 0 0.25rem 0" }}>
-                          ANOTACIÓN REGISTRADA:
-                        </p>
+                        <p style={{ fontSize: "0.75rem", fontWeight: 800, color: "#b45309", margin: "0 0 0.25rem 0" }}>ANOTACIÓN REGISTRADA:</p>
                         <ReactMarkdown>{ann.content_markdown}</ReactMarkdown>
                       </div>
                     ))}
                   </div>
                 )}
 
-                {/* ÁREA DE TEXTO Y ACCIONES DE RESPUESTA */}
                 <div className={styles.answerArea}>
                   <textarea
                     className={styles.textarea}
                     placeholder={
                       activeTab === "pending"
-                        ? "Puedes escribir la respuesta en Markdown"
+                        ? "Escribe la respuesta en Markdown..."
                         : "Escribe un texto aquí para agregar una anotación o reemplazar la respuesta..."
                     }
                     value={answerTexts[question.id] || ""}
@@ -403,9 +415,26 @@ export default function AdminDashboardPage() {
 
                   <div className={styles.actionButtons}>
                     {activeTab === "pending" && (
-                      <button onClick={() => setGroupModalForId(question.id)} className={styles.groupButton}>
-                        Vincular a duda ya respondida
-                      </button>
+                      <>
+                        <button
+                          onClick={() => setDeleteModalQuestion(question)}
+                          style={{
+                            backgroundColor: "#fef2f2",
+                            color: "#dc2626",
+                            border: "1px solid #fecaca",
+                            fontWeight: 700,
+                            padding: "0.625rem 1rem",
+                            borderRadius: "0.5rem",
+                            cursor: "pointer",
+                            fontSize: "0.8125rem",
+                          }}
+                        >
+                          Borrar Pregunta
+                        </button>
+                        <button onClick={() => setGroupModalForId(question.id)} className={styles.groupButton}>
+                          Vincular a duda ya respondida
+                        </button>
+                      </>
                     )}
 
                     {activeTab === "answered" && (
@@ -437,11 +466,46 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      {/* MODAL BENTO GRID DE UNIFICACIÓN */}
+      {/* MODAL BORRAR PREGUNTA */}
+      {deleteModalQuestion && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent} style={{ maxWidth: "28rem" }}>
+            <h2 className={styles.modalTitle} style={{ color: "#dc2626" }}>¿Eliminar esta pregunta?</h2>
+            <p style={{ fontSize: "0.875rem", color: "#475569", lineHeight: 1.5, marginBottom: "1rem" }}>
+              Estás a punto de borrar definitivamente la pregunta <strong>#{deleteModalQuestion.tracking_code}</strong> de la base de datos:
+            </p>
+            <div style={{ backgroundColor: "#f8fafc", border: "1px solid #e2e8f0", padding: "0.875rem", borderRadius: "0.5rem", fontSize: "0.875rem", color: "#0f172a", marginBottom: "1.5rem" }}>
+              "{deleteModalQuestion.content}"
+            </div>
+            <div className={styles.modalFooterActions}>
+              <button onClick={() => setDeleteModalQuestion(null)} className={styles.groupButton}>
+                Cancelar
+              </button>
+              <button
+                onClick={handleDeleteQuestion}
+                style={{
+                  backgroundColor: "#dc2626",
+                  color: "#ffffff",
+                  fontWeight: 800,
+                  padding: "0.625rem 1.25rem",
+                  borderRadius: "0.5rem",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: "0.8125rem",
+                }}
+                disabled={submittingId === deleteModalQuestion.id}
+              >
+                {submittingId === deleteModalQuestion.id ? "Eliminando..." : "Sí, Eliminar Definitivamente"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL VINCULAR PREGUNTA */}
       {groupModalForId && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
-            
             <div className={styles.modalHeader}>
               <div>
                 <h2 className={styles.modalTitle}>Vincular y Unificar Preguntas</h2>
@@ -503,7 +567,7 @@ export default function AdminDashboardPage() {
                                 setExpandedPreviewCardId(isExpanded ? null : answeredQ.id);
                               }}
                             >
-                              {isExpanded ? "▲ Ocultar respuesta" : "▼ Ver respuesta publicada"}
+                              {isExpanded ? "Ocultar respuesta" : "Ver respuesta publicada"}
                             </button>
 
                             {isExpanded && (
@@ -546,7 +610,6 @@ export default function AdminDashboardPage() {
                 {submittingId === groupModalForId ? "Vinculando..." : "Confirmar Vínculo"}
               </button>
             </div>
-
           </div>
         </div>
       )}
