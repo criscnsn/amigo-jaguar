@@ -6,13 +6,14 @@ import { supabase } from "@/lib/supabase/client";
 import ReactMarkdown from "react-markdown";
 import styles from "./page.module.css";
 
-// Interfaz temporal al no tener types/database.ts
 interface RastreoResult {
   id: string;
   tracking_code: string;
   content: string;
   status: "pending" | "answered" | "rejected";
-  answers?: { content_markdown: string }[];
+  parent_question_id: string | null;
+  answers: { content_markdown: string }[];
+  parent_tracking_code: string | null;
 }
 
 function RastreoContent() {
@@ -22,7 +23,6 @@ function RastreoContent() {
   const [error, setError] = useState("");
   const [result, setResult] = useState<RastreoResult | null>(null);
 
-  // Tu lógica original de búsqueda y formateo de código
   const executeSearch = useCallback(async (codeToSearch: string) => {
     if (!codeToSearch.trim()) return;
 
@@ -30,47 +30,75 @@ function RastreoContent() {
     setError("");
     setResult(null);
 
-    // Normalización robusta del código ingresado
     let cleanCode = codeToSearch.trim().toUpperCase();
-    
-    // Quitamos el '#' inicial si el usuario lo puso
     if (cleanCode.startsWith("#")) cleanCode = cleanCode.substring(1);
-    
-    // Quitamos prefijos completos o incompletos
     if (cleanCode.startsWith("JAG-")) cleanCode = cleanCode.substring(4);
     else if (cleanCode.startsWith("JAG")) cleanCode = cleanCode.substring(3);
-    
-    // Limpiamos cualquier guion extra que haya quedado
     cleanCode = cleanCode.replace(/-/g, "");
 
-    // 1. Código para buscar en la Base de Datos (SIN el '#')
     const dbQueryCode = `JAG-${cleanCode}`;
-    
-    // 2. Código para mostrar bonito en la Interfaz (CON el '#')
     const uiDisplayCode = `#${dbQueryCode}`;
 
     try {
-      const { data, error: fetchError } = await supabase
+      // 1. Buscamos la pregunta cruda sin joins problemáticos
+      const { data: qData, error: qError } = await supabase
         .from("questions")
-        .select(`
-          id,
-          tracking_code,
-          content,
-          status,
-          answers ( content_markdown )
-        `)
+        .select("id, tracking_code, content, status, parent_question_id")
         .eq("tracking_code", dbQueryCode)
         .maybeSingle();
 
-      if (fetchError) throw fetchError;
+      if (qError) throw qError;
       
-      if (data) {
-        setResult(data as unknown as RastreoResult);
-        setTrackingCode(uiDisplayCode);
-      } else {
+      if (!qData) {
         setError("No pudimos encontrar una duda con ese código. Verifica que sea correcto.");
         setTrackingCode(uiDisplayCode);
+        setLoading(false);
+        return;
       }
+
+      let finalAnswers: { content_markdown: string }[] = [];
+      let finalParentCode: string | null = null;
+
+      // 2. Lógica de separación de consultas directas
+      if (qData.status === "answered") {
+        if (qData.parent_question_id) {
+          // Es hija: Buscamos el código del padre
+          const { data: parentData } = await supabase
+            .from("questions")
+            .select("tracking_code")
+            .eq("id", qData.parent_question_id)
+            .maybeSingle();
+            
+          if (parentData) {
+            finalParentCode = parentData.tracking_code;
+          }
+        } else {
+          // Es padre/principal: Buscamos su respuesta principal
+          const { data: ansData } = await supabase
+            .from("answers")
+            .select("content_markdown, is_annotation, created_at")
+            .eq("question_id", qData.id);
+
+          if (ansData && ansData.length > 0) {
+            const sortedAnswers = [...ansData].sort(
+              (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            );
+            const mainAns = sortedAnswers.find((a) => !a.is_annotation) || sortedAnswers[0];
+            if (mainAns) {
+              finalAnswers = [{ content_markdown: mainAns.content_markdown }];
+            }
+          }
+        }
+      }
+
+      setResult({
+        ...qData,
+        answers: finalAnswers,
+        parent_tracking_code: finalParentCode,
+      } as RastreoResult);
+      
+      setTrackingCode(uiDisplayCode);
+
     } catch (err: any) {
       setError("Ocurrió un error al consultar la base de datos.");
     } finally {
@@ -78,7 +106,6 @@ function RastreoContent() {
     }
   }, []);
 
-  // Detecta si la llamada viene desde la portada (/rastreo?code=XXXX)
   useEffect(() => {
     const codeParam = searchParams.get("code");
     if (codeParam) {
@@ -91,6 +118,9 @@ function RastreoContent() {
     e.preventDefault();
     executeSearch(trackingCode);
   };
+
+  const isGrouped = !!result?.parent_question_id;
+  const parentCode = result?.parent_tracking_code;
 
   return (
     <div className={styles.pageContainer}>
@@ -109,21 +139,40 @@ function RastreoContent() {
             className={styles.searchInput}
             maxLength={12}
             required
+            disabled={loading}
           />
           <button 
             type="submit" 
             className={styles.primaryButton}
             disabled={loading}
           >
-            {loading ? "Buscando..." : "Buscar"}
+            Buscar
           </button>
         </form>
 
         {error && <p className={styles.errorMessage}>{error}</p>}
       </section>
 
-      {/* Resultados de la búsqueda */}
-      {result && (
+      {/* Load Skeletons */}
+      {loading && (
+        <section className={styles.skeletonSection}>
+          <div className={styles.skeletonBadge}></div>
+          <div className={styles.skeletonCard}>
+            <div className={styles.skeletonLine} style={{ width: "30%" }}></div>
+            <div className={styles.skeletonLine} style={{ width: "100%" }}></div>
+            <div className={styles.skeletonLine} style={{ width: "80%" }}></div>
+          </div>
+          <div className={styles.skeletonCard}>
+            <div className={styles.skeletonLine} style={{ width: "20%" }}></div>
+            <div className={styles.skeletonLine} style={{ width: "100%" }}></div>
+            <div className={styles.skeletonLine} style={{ width: "100%" }}></div>
+            <div className={styles.skeletonLine} style={{ width: "60%" }}></div>
+          </div>
+        </section>
+      )}
+
+      {/* Resultados Reales */}
+      {!loading && result && (
         <section className={styles.resultSection}>
           <div className={styles.statusBadge}>
             Estado: 
@@ -139,7 +188,16 @@ function RastreoContent() {
             <p className={styles.questionText}>{result.content}</p>
           </div>
 
-          {result.status === 'answered' && result.answers && result.answers.length > 0 && (
+          {/* Aviso si fue agrupada */}
+          {result.status === 'answered' && isGrouped && parentCode && (
+            <div className={styles.groupedNotice}>
+              <p>Tu duda fue asociada a un grupo de varias preguntas similares. Busca este código en el buscador para ver la respuesta general:</p>
+              <div className={styles.parentCodeBox}>#{parentCode}</div>
+            </div>
+          )}
+
+          {/* Respuesta directa */}
+          {result.status === 'answered' && !isGrouped && result.answers && result.answers.length > 0 && (
             <div className={styles.answerCard}>
               <h3 className={styles.cardLabel}>Respuesta:</h3>
               <div className={styles.markdownContent}>
