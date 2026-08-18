@@ -1,5 +1,5 @@
 import {Filter} from 'bad-words';
-
+//buscar lista de profanity en español y agregarla a la lista de palabras prohibidas
 //Lista negra de groserias prohibidas o palabras en general ejje
 
 const customBadWords = [
@@ -22,6 +22,7 @@ const customBadWords = [
   "chupatrusas",
   "americanista",
   "pumista",
+  "pinche",
 ];
 
 /**
