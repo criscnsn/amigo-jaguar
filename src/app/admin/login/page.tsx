@@ -24,7 +24,7 @@ export default function AdminLoginPage() {
       });
 
       if (authError) {
-        throw new Error("Credenciales inválidas. Verifica tu correo y contraseña.");
+        throw new Error("Credenciales inválidas. Verifica tu usuario y contraseña.");
       }
 
       // Éxito: Redirigir al dashboard administrativo
@@ -47,7 +47,7 @@ export default function AdminLoginPage() {
 
         <form onSubmit={handleLogin}>
           <div className={styles.formGroup}>
-            <label className={styles.label}>Correo Institucional</label>
+            <label className={styles.label}>Usuario</label>
             <input
               type="email"
               className={styles.input}
