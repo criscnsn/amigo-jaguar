@@ -469,3 +469,109 @@
   text-transform: uppercase;
   margin-bottom: 0.5rem;
 }
+
+/* Badge para Categorías Específicas (Maestros, Materias, Campus, Trámites) */
+.tagCategory {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #b45309;
+  background-color: #fef3c7;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.375rem;
+}
+
+.filterGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.filterSelect {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #334155;
+  outline: none;
+}
+
+/* Skeletons para el Feed Público */
+.skeletonFeed {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.skeletonCard {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.skeletonLine {
+  height: 1rem;
+  background-color: #f1f5f9;
+  border-radius: 0.375rem;
+}
+/* AJUSTE PARA DISPOSITIVOS MÓVILES 
+para la zona de filtros y selectores de categorías, para que se vean mejor en pantallas pequeñas.
+*/
+@media (max-width: 640px) {
+  .wrapper {
+    padding: 1.5rem 1rem 3rem 1rem;
+    gap: 1.75rem;
+  }
+
+  .title {
+    font-size: 1.75rem;
+  }
+
+  .faqCard {
+    flex: 0 0 280px;
+    padding: 1.25rem;
+  }
+
+  .questionCard {
+    padding: 1.25rem;
+  }
+
+  .questionContent {
+    font-size: 1.125rem;
+  }
+
+  .cardFooter {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .upvoteBtn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Ajuste responsivo para los filtros en celular */
+  .filterGrid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .filterSelect {
+    padding: 0.625rem 0.75rem;
+    font-size: 0.875rem;
+  }
+}
