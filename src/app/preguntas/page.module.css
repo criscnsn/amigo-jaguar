@@ -1,10 +1,10 @@
-/* =========================================
-   CONTENEDOR PRINCIPAL
-   ========================================= */
+/* ==========================================================================
+   1. CONTENEDOR PRINCIPAL Y ENCABEZADOS
+   ========================================================================== */
 .wrapper {
   max-width: 76rem;
   margin: 0 auto;
-  padding: 1rem 1.5rem 4rem 1.5rem; /* Ajustado el espacio superior */
+  padding: 1rem 1.5rem 4rem 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 2rem;
@@ -29,7 +29,9 @@
   margin: 0;
 }
 
-.sectionHeader, .faqHeader, .communityHeader {
+.sectionHeader,
+.faqHeader,
+.communityHeader {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -47,9 +49,9 @@
   margin: 0;
 }
 
-/* =========================================
-   1. PREGUNTAS FRECUENTES (CARRUSEL LATERAL)
-   ========================================= */
+/* ==========================================================================
+   2. PREGUNTAS FRECUENTES (CARRUSEL LATERAL)
+   ========================================================================== */
 .faqSection {
   display: flex;
   flex-direction: column;
@@ -60,11 +62,11 @@
   gap: 1.25rem;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
-  padding: 0.5rem 0.25rem 0.75rem 0.25rem; /* Margen interior para que el zoom no se corte */
+  padding: 0.5rem 0.25rem 0.75rem 0.25rem;
   -webkit-overflow-scrolling: touch;
 }
 
-/* Personalización de la barra de desplazamiento */
+/* Personalización de la barra de scroll horizontal */
 .faqCarousel::-webkit-scrollbar {
   height: 6px;
 }
@@ -99,7 +101,7 @@
 
 .faqCard:hover {
   border-color: #002e5f;
-  transform: scale(1.02); /* Efecto zoom suave en lugar de alzado */
+  transform: scale(1.02);
   box-shadow: 0 8px 16px -2px rgba(0, 0, 0, 0.08);
 }
 
@@ -129,9 +131,9 @@
   margin: 0;
 }
 
-/* =========================================
-   2. CONTROLES Y BUSCADOR
-   ========================================= */
+/* ==========================================================================
+   3. CONTROLES DE BÚSQUEDA Y PESTAÑAS
+   ========================================================================== */
 .controlsSection {
   display: flex;
   flex-direction: column;
@@ -204,9 +206,74 @@
   color: #ffffff;
 }
 
-/* =========================================
-   3. PREGUNTAS DE LA COMUNIDAD (FEED)
-   ========================================= */
+/* ==========================================================================
+   4. FILTROS AVANZADOS (ESCRITORIO: FIJOS POR DEFECTO)
+   ========================================================================== */
+/* En escritorio, el botón colapsable se oculta */
+.filterToggleBtn {
+  display: none;
+}
+
+/* En escritorio, el panel de filtros se despliega siempre de forma estática */
+.collapsibleFilterPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 0.25rem;
+}
+
+.filterHeaderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.clearFiltersBtn {
+  background: none;
+  border: none;
+  color: #d97706;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.clearFiltersBtn:hover {
+  color: #b45309;
+}
+
+.activeFilterBadge {
+  background-color: #002e5f;
+  color: #ffffff;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  padding: 0.125rem 0.45rem;
+  border-radius: 9999px;
+  margin-left: 0.5rem;
+}
+
+.filterGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.filterSelect {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #334155;
+  outline: none;
+}
+
+/* ==========================================================================
+   5. FEED DE PREGUNTAS DE LA COMUNIDAD
+   ========================================================================== */
 .communitySection {
   display: flex;
   flex-direction: column;
@@ -251,11 +318,22 @@
   border-radius: 0.375rem;
 }
 
-.tagType, .tagPlan, .tagSubject {
+.tagType,
+.tagPlan,
+.tagSubject {
   font-size: 0.75rem;
   font-weight: 700;
   color: #475569;
   background-color: #f1f5f9;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.375rem;
+}
+
+.tagCategory {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #b45309;
+  background-color: #fef3c7;
   padding: 0.2rem 0.5rem;
   border-radius: 0.375rem;
 }
@@ -268,7 +346,9 @@
   margin: 0;
 }
 
-/* Acordeón de Agrupadas */
+/* ==========================================================================
+   6. ACORDEÓN DE PREGUNTAS SIMILARES (AGRUPADAS)
+   ========================================================================== */
 .groupedAccordion {
   background-color: #f8fafc;
   border-radius: 0.5rem;
@@ -309,7 +389,9 @@
   font-weight: 500;
 }
 
-/* Caja de respuesta */
+/* ==========================================================================
+   7. CAJAS DE RESPUESTAS Y ANOTACIONES
+   ========================================================================== */
 .answerBox {
   background-color: #f8fafc;
   border-left: 4px solid #002e5f;
@@ -340,7 +422,36 @@
   margin: 0;
 }
 
-/* Footer de la tarjeta */
+.annotationsWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.annotationBox {
+  background-color: #fffbeb;
+  border-left: 4px solid #d97706;
+  border-radius: 0 0.5rem 0.5rem 0;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid #fef3c7;
+  border-right: 1px solid #fef3c7;
+  border-bottom: 1px solid #fef3c7;
+}
+
+.annotationBadge {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #b45309;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+/* ==========================================================================
+   8. FOOTER DE LA TARJETA Y BOTÓN "ME SIRVIÓ" (UPVOTES)
+   ========================================================================== */
 .cardFooter {
   display: flex;
   align-items: center;
@@ -382,124 +493,9 @@
   border-color: #fde68a;
 }
 
-/* Estados vacíos y carga */
-.loadingBox, .emptyCard {
-  text-align: center;
-  padding: 3rem 1.5rem;
-  background-color: #ffffff;
-  border-radius: 1rem;
-  border: 1px solid #e2e8f0;
-}
-
-.emptyTitle {
-  font-size: 1.125rem;
-  font-weight: 800;
-  color: #0f172a;
-  margin: 0 0 0.25rem 0;
-}
-
-.emptySub {
-  font-size: 0.875rem;
-  color: #64748b;
-  margin: 0;
-}
-
-/* =========================================
-   DISEÑO RESPONSIVO (MÓVIL)
-   ========================================= */
-@media (max-width: 640px) {
-  .wrapper {
-    padding: 1.5rem 1rem 3rem 1rem;
-    gap: 1.75rem;
-  }
-
-  .title {
-    font-size: 1.75rem;
-  }
-
-  .faqCard {
-    flex: 0 0 280px;
-    padding: 1.25rem;
-  }
-
-  .questionCard {
-    padding: 1.25rem;
-  }
-
-  .questionContent {
-    font-size: 1.125rem;
-  }
-
-  .cardFooter {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
-  }
-
-  .upvoteBtn {
-    width: 100%;
-    justify-content: center;
-  }
-}
-
-/* Estilos para la caja de anotaciones amarillas */
-.annotationsWrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.annotationBox {
-  background-color: #fffbeb;
-  border-left: 4px solid #d97706;
-  border-radius: 0 0.5rem 0.5rem 0;
-  padding: 1rem 1.25rem;
-  border-top: 1px solid #fef3c7;
-  border-right: 1px solid #fef3c7;
-  border-bottom: 1px solid #fef3c7;
-}
-
-.annotationBadge {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  font-size: 0.75rem;
-  font-weight: 800;
-  color: #b45309;
-  text-transform: uppercase;
-  margin-bottom: 0.5rem;
-}
-
-/* Badge para Categorías Específicas (Maestros, Materias, Campus, Trámites) */
-.tagCategory {
-  font-size: 0.75rem;
-  font-weight: 800;
-  color: #b45309;
-  background-color: #fef3c7;
-  padding: 0.2rem 0.5rem;
-  border-radius: 0.375rem;
-}
-
-.filterGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 0.75rem;
-  margin-top: 0.75rem;
-}
-
-.filterSelect {
-  width: 100%;
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.5rem;
-  border: 1px solid #cbd5e1;
-  background-color: #ffffff;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: #334155;
-  outline: none;
-}
-
-/* Skeletons para el Feed Público */
+/* ==========================================================================
+   9. ESTADOS DE CARGA (SKELETONS) Y ESTADOS VACÍOS
+   ========================================================================== */
 .skeletonFeed {
   display: flex;
   flex-direction: column;
@@ -527,9 +523,32 @@
   background-color: #f1f5f9;
   border-radius: 0.375rem;
 }
-/* AJUSTE PARA DISPOSITIVOS MÓVILES 
-para la zona de filtros y selectores de categorías, para que se vean mejor en pantallas pequeñas.
-*/
+
+.loadingBox,
+.emptyCard {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  background-color: #ffffff;
+  border-radius: 1rem;
+  border: 1px solid #e2e8f0;
+}
+
+.emptyTitle {
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 0.25rem 0;
+}
+
+.emptySub {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+}
+
+/* ==========================================================================
+   10. ADAPTACIÓN RESPONSIVA (MÓVILES <= 640px)
+   ========================================================================== */
 @media (max-width: 640px) {
   .wrapper {
     padding: 1.5rem 1rem 3rem 1rem;
@@ -564,7 +583,35 @@ para la zona de filtros y selectores de categorías, para que se vean mejor en p
     justify-content: center;
   }
 
-  /* Ajuste responsivo para los filtros en celular */
+  /* Control colapsable para filtros en celulares */
+  .filterToggleBtn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    background-color: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: #334155;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .filterToggleBtn:hover {
+    background-color: #f1f5f9;
+  }
+
+  .collapsibleFilterPanel {
+    display: none;
+  }
+
+  .collapsibleFilterPanel.panelOpen {
+    display: flex;
+  }
+
   .filterGrid {
     grid-template-columns: 1fr;
     gap: 0.5rem;
